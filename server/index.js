@@ -491,14 +491,15 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
 });
 
+// 处理根路径，返回前端页面
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // 启动服务器
 app.listen(port, () => {
     console.log(`服务器运行在 http://localhost:${port}`);
     if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === 'YOUR_DEEPSEEK_API_KEY') {
         console.log('提示：未配置DeepSeek API Key，使用本地解析模式。如需更专业的解析，请配置API Key。');
     }
-});
-// 在 index.js 末尾添加根路径处理
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
