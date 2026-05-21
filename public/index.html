@@ -1,0 +1,3041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>智学刷题｜手机高级版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body{
+            background: #0A0C16;
+            color: #F0F2FF;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+        .glass-card{
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transition: all 0.3s ease;
+        }
+        .glass-card:active{
+            transform: scale(0.98);
+            background: rgba(255,255,255,0.08);
+        }
+        .btn-gradient{
+            background: linear-gradient(135deg, #6C63FF, #A78BFA);
+            border-radius: 20px;
+            color: #fff;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.3);
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        .btn-gradient:active{
+            transform: translateY(2px);
+            box-shadow: 0 3px 10px rgba(108, 99, 255, 0.2);
+        }
+        .btn-gradient:disabled{
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-gradient.loading{
+            position: relative;
+            color: transparent;
+        }
+        .btn-gradient.loading::after{
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: btnSpin 0.8s linear infinite;
+        }
+        @keyframes btnSpin{
+            to{transform: rotate(360deg);}
+        }
+        .page{
+            display: none;
+            animation: pageIn 0.3s ease forwards;
+        }
+        .page.active{
+            display: block;
+        }
+        @keyframes pageIn {
+            from{opacity: 0; transform: translateY(10px);}
+            to{opacity: 1; transform: translateY(0);}
+        }
+        .nav-item{
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .nav-item.active i,.nav-item.active p{
+            color: #A78BFA;
+        }
+        .option-selected{
+            border: 1px solid #A78BFA !important;
+            background: rgba(167, 139, 250, 0.1) !important;
+        }
+        input{
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:16px;
+            padding:14px;
+            color:#fff;
+            outline:none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus{
+            border-color: rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+        }
+        input.error{
+            border-color: rgba(239, 68, 68, 0.5);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+        ::-webkit-scrollbar{width: 4px;}
+        ::-webkit-scrollbar-thumb{background: rgba(167, 139, 250, 0.3);border-radius: 4px;}
+        textarea{resize: none;outline: none;}
+
+        nav{
+            transition: all 0.3s;
+        }
+        nav.hide-nav{
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+
+        /* Toast Notification System */
+        .toast-container{
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast{
+            background: rgba(30, 32, 48, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.3s ease forwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            pointer-events: auto;
+        }
+        .toast.toast-out{
+            animation: toastOut 0.3s ease forwards;
+        }
+        .toast.success{border-color: rgba(34, 197, 94, 0.3);}
+        .toast.success i{color: #22c55e;}
+        .toast.error{border-color: rgba(239, 68, 68, 0.3);}
+        .toast.error i{color: #ef4444;}
+        .toast.info{border-color: rgba(59, 130, 246, 0.3);}
+        .toast.info i{color: #3b82f6;}
+        .toast.warning{border-color: rgba(251, 191, 36, 0.3);}
+        .toast.warning i{color: #fbbf24;}
+        @keyframes toastIn{
+            from{opacity: 0; transform: translateY(-20px);}
+            to{opacity: 1; transform: translateY(0);}
+        }
+        @keyframes toastOut{
+            from{opacity: 1; transform: translateY(0);}
+            to{opacity: 0; transform: translateY(-20px);}
+        }
+
+        /* Ripple Effect */
+        .ripple{
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple::before{
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+        .ripple:active::before{
+            width: 200px;
+            height: 200px;
+        }
+
+        /* Progress Ring */
+        .progress-ring{
+            transform: rotate(-90deg);
+        }
+        .progress-ring-circle{
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        /* Card Hover Effect */
+        .glass-card.hoverable:hover{
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        }
+
+        /* Tab Indicator Animation */
+        .tab-indicator{
+            position: relative;
+        }
+        .tab-indicator::after{
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #6C63FF, #A78BFA);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .tab-indicator.active::after{
+            transform: scaleX(1);
+        }
+
+        /* Shake Animation for Error */
+        @keyframes shake{
+            0%, 100%{transform: translateX(0);}
+            25%{transform: translateX(-5px);}
+            75%{transform: translateX(5px);}
+        }
+        .shake{
+            animation: shake 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toast Notification Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- 登录注册页面 -->
+<div id="loginPage" class="page active px-5 pt-16">
+    <div class="text-center mb-12">
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-purple-500/25 mb-4">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+        </div>
+        <h1 class="text-[32px] font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">智学刷题</h1>
+        <p class="text-gray-400 mt-3">私密本地账号 · 数据永久保存在本机</p>
+    </div>
+
+    <div class="glass-card p-8 max-w-md mx-auto border border-white/10 rounded-2xl shadow-xl">
+        <div class="flex gap-6 mb-8">
+            <span id="loginTab" class="flex-1 text-center font-medium text-purple-400 border-b-2 border-purple-400 pb-2 transition-all duration-300 cursor-pointer">登录</span>
+            <span id="regTab" class="flex-1 text-center font-medium text-gray-400 pb-2 transition-all duration-300 cursor-pointer hover:text-gray-300">注册</span>
+        </div>
+
+        <div id="loginBox">
+            <div class="relative mb-5">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <input type="text" id="loginUser" placeholder="请输入账号" class="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 text-white">
+            </div>
+            
+            <div class="relative mb-6">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <input type="password" id="loginPwd" placeholder="请输入密码" class="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 text-white">
+            </div>
+
+            <div class="flex items-center justify-between mb-6">
+                <label class="flex items-center gap-2 text-gray-400 text-sm cursor-pointer">
+                    <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-gray-600 bg-gray-700 text-purple-500 focus:ring-purple-500">
+                    <span>记住密码</span>
+                </label>
+                <span class="text-purple-400 text-sm cursor-pointer hover:text-purple-300 transition-colors" onclick="showForgotPwd()">忘记密码?</span>
+            </div>
+
+            <button onclick="Auth.login()" class="btn-gradient w-full py-4 rounded-xl font-medium text-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300">立即登录</button>
+        </div>
+
+        <div id="regBox" class="hidden">
+            <div class="relative mb-5">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <input type="text" id="regUser" placeholder="设置账号" class="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 text-white">
+            </div>
+
+            <div class="relative mb-6">
+                <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <input type="password" id="regPwd" placeholder="设置密码" class="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 text-white">
+            </div>
+
+            <button onclick="Auth.register()" class="btn-gradient w-full py-4 rounded-xl font-medium text-lg shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300">创建账号</button>
+        </div>
+    </div>
+
+    <p class="text-center text-gray-500 text-xs mt-8">所有错题 & 记录仅保存在你手机本地</p>
+</div>
+
+<!-- 忘记密码弹窗 -->
+<div id="forgotPwdModal" class="fixed inset-0 bg-black/60 flex items-center justify-center px-4 z-50 hidden">
+    <div class="glass-card p-6 max-w-sm w-full rounded-xl border border-white/10 shadow-xl">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-white">忘记密码</h3>
+            <button onclick="Utils.$('forgotPwdModal').classList.add('hidden')" class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="relative mb-5">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <input type="text" id="forgotUser" placeholder="请输入账号" class="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 text-white">
+        </div>
+        
+        <p class="text-gray-400 text-sm mb-5">密码将显示在弹窗中（本地存储）</p>
+        
+        <button onclick="Auth.forgotPassword()" class="btn-gradient w-full py-3 rounded-lg font-medium">找回密码</button>
+    </div>
+</div>
+
+<!-- 首页 -->
+<div id="homePage" class="page px-4">
+    <header class="px-1 pt-8 pb-4 flex justify-between items-center">
+        <div>
+            <h1 class="text-[24px] font-bold">欢迎回来</h1>
+            <p class="text-gray-400 text-[14px] mt-1" id="nowUserName">用户</p>
+        </div>
+        <button onclick="Auth.logout()" class="text-gray-400 text-sm">退出登录</button>
+    </header>
+
+    <div class="glass-card p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-[13px]">综合正确率</p>
+                <h2 class="text-[32px] font-bold text-indigo-300 mt-1" id="totalRate">0%</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 text-[13px]">累计刷题</p>
+                <h2 class="text-[32px] font-bold mt-1" id="totalNum">0</h2>
+            </div>
+        </div>
+        <div class="flex justify-between mt-6 pt-4 border-t border-white/[0.05]">
+            <div class="text-center">
+                <p class="text-gray-400 text-[12px]">答对</p>
+                <p class="text-[18px] font-semibold text-green-400" id="rightCount">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-400 text-[12px]">错题</p>
+                <p class="text-[18px] font-semibold text-red-400" id="wrongCount">0</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-400 text-[12px]">薄弱模块</p>
+                <p class="text-[18px] font-semibold text-yellow-400" id="weakModule">未检测</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="glass-card p-5 text-center flex flex-col items-center justify-center" onclick="Exam.startRandom()">
+            <i class="fa fa-random text-2xl text-indigo-400 mb-2"></i>
+            <p class="font-medium text-[15px]">随机刷题</p>
+            <p class="text-[12px] text-gray-400 mt-1">选择/多选/判断</p>
+        </div>
+        <div class="glass-card p-5 text-center flex flex-col items-center justify-center" onclick="UI.switchPage('specialTrainPage')">
+            <i class="fa fa-th-list text-2xl text-purple-400 mb-2"></i>
+            <p class="font-medium text-[15px]">专项训练</p>
+            <p class="text-[12px] text-gray-400 mt-1">自主选择题型</p>
+        </div>
+    </div>
+
+    <div class="glass-card p-5 mb-6" onclick="TestExam.start()">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center">
+                    <i class="fa fa-clock-o text-xl text-red-400"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-[15px]">模拟考试</p>
+                    <p class="text-[12px] text-gray-400 mt-1">90分钟 · 随机组卷</p>
+                </div>
+            </div>
+            <i class="fa fa-chevron-right text-gray-500"></i>
+        </div>
+    </div>
+
+    <div class="glass-card p-5 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <p class="font-medium text-[16px]">模块错题分析</p>
+            <span class="text-[12px] text-purple-300">智能短板识别</span>
+        </div>
+        <canvas id="weakAnalyzeChart" height="190"></canvas>
+    </div>
+
+    <div class="glass-card p-5 mb-6" onclick="UI.switchPage('importPage')">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <i class="fa fa-download text-xl text-blue-400"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-[15px]">导入题库</p>
+                    <p class="text-[12px] text-gray-400 mt-1">支持 txt/docx/wps 格式</p>
+                </div>
+            </div>
+            <i class="fa fa-chevron-right text-gray-500"></i>
+        </div>
+        <div class="mt-3 pt-3 border-t border-white/[0.05]">
+            <p class="text-[12px] text-gray-400">当前题库：<span class="text-purple-300 font-medium" id="currentQuestionCount">0</span> 道题</p>
+        </div>
+    </div>
+</div>
+
+<!-- 刷题页面 -->
+<div id="examPage" class="page px-4">
+    <div class="glass-card p-6 my-5">
+        <span class="inline-block px-3 py-1 bg-indigo-500/20 text-indigo-300 text-[12px] rounded-full mb-3" id="questionModule">模块名称</span>
+        <h3 class="text-[17px] leading-relaxed font-medium" id="questionTitle">题目加载中...</h3>
+    </div>
+
+    <div class="space-y-3 px-1" id="answerOptions"></div>
+    
+    <button class="btn-gradient w-full py-3 mt-4 text-[15px] hidden" onclick="Exam.confirmMultiAnswer()" id="confirmMultiBtn">确认答案</button>
+
+    <div class="glass-card p-5 mt-5 hidden" id="answerAnalyze">
+        <!-- 用户选择的答案 -->
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fa fa-user-circle text-blue-400"></i>
+            <p class="font-medium text-blue-300" id="userAnswerTip">你的答案：</p>
+        </div>
+        <p class="text-[15px] mb-4" id="userAnswerContent"></p>
+        
+        <!-- 正确答案 -->
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fa fa-check-circle text-green-400"></i>
+            <p class="font-medium text-green-300" id="correctAnswerTip">正确答案：</p>
+        </div>
+        <p class="text-[15px] mb-4" id="correctAnswerContent"></p>
+        
+        <p class="text-gray-300 text-[14px] leading-relaxed mb-4">
+            <span class="font-medium text-white">解析：</span>
+            <span id="answerExplain"></span>
+        </p>
+        <textarea placeholder="写下错题更正思路/知识点总结..." class="w-full bg-white/[0.05] border border-white/[0.08] rounded-16 p-4 text-[14px] text-gray-200 min-h-[100px]" id="errorNote"></textarea>
+        <button class="btn-gradient w-full py-3.5 mt-4 text-[15px]" onclick="Exam.saveNote()">保存复盘笔记</button>
+    </div>
+
+    <button class="btn-gradient w-full py-4 mt-6 text-[16px]" onclick="Exam.next()" id="nextBtn" disabled>下一题</button>
+</div>
+
+<!-- 模拟考试页面 -->
+<div id="testExamPage" class="page px-4">
+    <div class="flex items-center justify-between mb-4 pt-4">
+        <div class="flex items-center gap-3">
+            <button onclick="TestExam.confirmExit()" class="text-gray-400">
+                <i class="fa fa-times text-xl"></i>
+            </button>
+            <span class="text-[15px] font-medium">模拟考试</span>
+        </div>
+        <div class="flex items-center gap-2 bg-red-500/20 px-3 py-1.5 rounded-full">
+            <i class="fa fa-clock-o text-red-400 text-sm"></i>
+            <span id="testTimer" class="text-red-400 font-mono text-[15px] font-medium">90:00</span>
+        </div>
+    </div>
+
+    <div class="glass-card p-5 mb-4">
+        <div class="flex justify-between items-center mb-3">
+            <span class="text-[13px] text-gray-400">第 <span id="testCurrentQ" class="text-white font-medium">1</span> / <span id="testTotalQ">0</span> 题</span>
+            <span id="testQuestionModule" class="text-[12px] text-purple-300 bg-purple-500/20 px-2 py-1 rounded-full">模块</span>
+        </div>
+        <div class="w-full bg-white/10 rounded-full h-1.5 mb-4">
+            <div id="testProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+        <h3 class="text-[16px] leading-relaxed font-medium" id="testQuestionTitle">题目加载中...</h3>
+    </div>
+
+    <div class="space-y-3 px-1" id="testAnswerOptions"></div>
+
+    <div class="glass-card p-5 mt-5 hidden" id="testAnswerAnalyze">
+        <!-- 用户选择的答案 -->
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fa fa-user-circle text-blue-400"></i>
+            <p class="font-medium text-blue-300">你的答案：</p>
+        </div>
+        <p class="text-[15px] mb-4" id="testUserAnswerContent"></p>
+        
+        <!-- 正确答案 -->
+        <div class="flex items-center gap-2 mb-3">
+            <i class="fa fa-check-circle text-green-400"></i>
+            <p class="font-medium text-green-300">正确答案：</p>
+        </div>
+        <p class="text-[15px] mb-4" id="testCorrectAnswerContent"></p>
+        <p class="text-gray-300 text-[14px] leading-relaxed">
+            <span class="font-medium text-white">解析：</span>
+            <span id="testAnswerExplain"></span>
+        </p>
+    </div>
+
+    <div class="flex gap-3 mt-6">
+        <button onclick="TestExam.prev()" id="testPrevBtn" class="btn-gradient flex-1 py-4 opacity-60" disabled>
+            <i class="fa fa-chevron-left mr-2"></i>上一题
+        </button>
+        <button onclick="TestExam.next()" id="testNextBtn" class="btn-gradient flex-1 py-4">
+            下一题<i class="fa fa-chevron-right ml-2"></i>
+        </button>
+    </div>
+    <button onclick="TestExam.confirmMultiAnswer()" id="testConfirmBtn" class="btn-gradient w-full py-4 mt-3 hidden bg-gradient-to-r from-green-500 to-teal-500">
+        <i class="fa fa-check mr-2"></i>确认答案
+    </button>
+    <button onclick="TestExam.submit()" id="testSubmitBtn" class="btn-gradient w-full py-4 mt-3 hidden bg-gradient-to-r from-red-500 to-orange-500">
+        <i class="fa fa-paper-plane mr-2"></i>交卷
+    </button>
+</div>
+
+<!-- 考试成绩页面 -->
+<div id="testResultPage" class="page px-4">
+    <div class="text-center pt-8 pb-6">
+        <div class="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center mb-4">
+            <i class="fa fa-graduation-cap text-4xl text-indigo-400"></i>
+        </div>
+        <h2 class="text-[24px] font-bold">考试完成</h2>
+        <p class="text-gray-400 text-[14px] mt-1">恭喜你完成了本次模拟考试</p>
+    </div>
+
+    <div class="glass-card p-6 mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="text-center p-4 bg-green-500/10 rounded-2xl">
+                <p class="text-[28px] font-bold text-green-400" id="testResultRight">0</p>
+                <p class="text-[12px] text-gray-400 mt-1">答对题数</p>
+            </div>
+            <div class="text-center p-4 bg-red-500/10 rounded-2xl">
+                <p class="text-[28px] font-bold text-red-400" id="testResultWrong">0</p>
+                <p class="text-[12px] text-gray-400 mt-1">答错题数</p>
+            </div>
+        </div>
+        <div class="text-center p-4 bg-indigo-500/10 rounded-2xl">
+            <p class="text-[36px] font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent" id="testResultRate">0%</p>
+            <p class="text-[12px] text-gray-400 mt-1">正确率</p>
+        </div>
+        <div class="text-center p-4 bg-yellow-500/10 rounded-2xl mt-4">
+            <p class="text-[28px] font-bold text-yellow-400" id="testResultScore">0分</p>
+            <p class="text-[12px] text-gray-400 mt-1">本次得分</p>
+        </div>
+    </div>
+
+    <div class="glass-card p-5 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <p class="font-medium text-[16px]">模块正确率分析</p>
+        </div>
+        <canvas id="testModuleChart" height="180"></canvas>
+    </div>
+
+    <div class="space-y-3 mb-6" id="testErrorListContainer"></div>
+
+    <button onclick="TestExam.viewErrors()" class="btn-gradient w-full py-4 mb-3">
+        <i class="fa fa-exclamation-circle mr-2"></i>查看错题
+    </button>
+    <button onclick="TestExam.backHome()" class="w-full py-4 border border-white/10 rounded-20 text-gray-300 font-medium">
+        返回首页
+    </button>
+</div>
+
+<!-- 专项训练页面 -->
+<div id="specialTrainPage" class="page px-4">
+    <div class="pt-6 pb-4">
+        <h2 class="text-[18px] font-bold">专项训练</h2>
+        <p class="text-[13px] text-gray-400 mt-1">选择想要练习的题型</p>
+    </div>
+    
+    <div class="grid grid-cols-2 gap-4 mb-4">
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('单选题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-dot-circle-o text-xl text-blue-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">单选题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共60题</p>
+        </div>
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('多选题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-check-square text-xl text-purple-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">多选题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共15题</p>
+        </div>
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('判断题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-toggle-on text-xl text-green-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">判断题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共20题</p>
+        </div>
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('计算题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-calculator text-xl text-orange-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">计算题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共2题</p>
+        </div>
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('简答题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-yellow-500/20 to-amber-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-edit text-xl text-yellow-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">简答题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共2题</p>
+        </div>
+        <div class="glass-card p-5 text-center cursor-pointer" onclick="SpecialTrain.start('论述题')">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 flex items-center justify-center mb-3">
+                <i class="fa fa-file-text text-xl text-pink-400"></i>
+            </div>
+            <p class="font-medium text-[15px]">论述题</p>
+            <p class="text-[12px] text-gray-400 mt-1">共2题</p>
+        </div>
+    </div>
+</div>
+
+<!-- 导入题库页面 -->
+<div id="importPage" class="page px-4">
+    <div class="pt-6 pb-4">
+        <h2 class="text-[18px] font-bold">导入题库</h2>
+        <p class="text-[13px] text-gray-400 mt-1">智能识别 · 自动解析</p>
+    </div>
+
+    <div class="glass-card p-6 mb-6">
+        <div class="border-2 border-dashed border-gray-700 rounded-2xl p-8 text-center mb-4">
+            <i class="fa fa-cloud-upload text-4xl text-gray-500 mb-3"></i>
+            <p class="text-gray-400 mb-2">支持格式：txt / docx / wps</p>
+            <p class="text-gray-500 text-[12px] mb-4">将文件拖到此处，或点击下方按钮选择文件</p>
+            <input type="file" id="fileInput" accept=".txt,.docx,.wps" class="hidden" onchange="Import.handleFileSelect(event)">
+            <button onclick="document.getElementById('fileInput').click()" class="px-6 py-2 btn-gradient text-sm">选择文件</button>
+        </div>
+
+        <div id="importProgress" class="hidden mb-6">
+            <div class="flex justify-between text-[13px] mb-2">
+                <span class="text-gray-400">解析进度</span>
+                <span class="text-purple-400" id="progressText">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-2">
+                <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p class="text-gray-500 text-[12px] mt-2" id="importStatus">正在解析文件...</p>
+        </div>
+
+        <div id="importResult" class="hidden p-4 bg-gray-800/50 rounded-2xl">
+            <h3 class="font-medium mb-3">导入结果</h3>
+            <div class="grid grid-cols-3 gap-3 text-center mb-4">
+                <div>
+                    <p class="text-2xl font-bold text-green-400" id="importSuccess">0</p>
+                    <p class="text-gray-400 text-[11px] mt-1">成功导入</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-red-400" id="importFailed">0</p>
+                    <p class="text-gray-400 text-[11px] mt-1">解析失败</p>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-purple-400" id="importTotal">0</p>
+                    <p class="text-gray-400 text-[11px] mt-1">总计</p>
+                </div>
+            </div>
+            <button onclick="Import.confirmImport()" class="btn-gradient w-full py-3 rounded-xl font-medium">确认导入</button>
+        </div>
+    </div>
+
+    <div class="glass-card p-5">
+        <h3 class="font-medium mb-3">导入说明</h3>
+        <ul class="text-[13px] text-gray-400 space-y-2">
+            <li>• 支持自动识别题目、选项和答案</li>
+            <li>• 答案格式支持：A/B/C/D 或 1/2/3/4</li>
+            <li>• 选项支持：A.B.C.D 或 A、B、C、D</li>
+            <li>• 题目编号自动识别</li>
+            <li>• 解析内容可选导入</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 错题本 -->
+<div id="errorBookPage" class="page px-4">
+    <div class="flex justify-between items-center mb-5">
+        <h2 class="text-[18px] font-bold">错题记录本</h2>
+        <span class="text-[13px] text-red-400" id="errorTotal">共0题</span>
+    </div>
+    <div class="space-y-4" id="errorListContainer">
+        <div class="glass-card p-6 text-center text-gray-400">
+            <i class="fa fa-inbox text-3xl mb-2"></i>
+            <p>暂无错题，继续加油！</p>
+        </div>
+    </div>
+</div>
+
+<!-- 底部导航 -->
+<nav class="fixed bottom-0 left-0 w-full bg-[#111425] border-t border-white/[0.05] flex justify-around items-center py-3 hide-nav">
+    <div class="nav-item text-center flex flex-col items-center active" onclick="UI.switchPage('homePage', this)">
+        <i class="fa fa-home text-lg"></i>
+        <p class="text-[12px] mt-1">首页</p>
+    </div>
+    <div class="nav-item text-center flex flex-col items-center" onclick="UI.switchPage('examPage', this)">
+        <i class="fa fa-book text-lg"></i>
+        <p class="text-[12px] mt-1">刷题</p>
+    </div>
+    <div class="nav-item text-center flex flex-col items-center" onclick="UI.switchPage('testExamPage', this)">
+        <i class="fa fa-file-text-o text-lg"></i>
+        <p class="text-[12px] mt-1">考试</p>
+    </div>
+    <div class="nav-item text-center flex flex-col items-center" onclick="UI.switchPage('errorBookPage', this)">
+        <i class="fa fa-exclamation-circle text-lg"></i>
+        <p class="text-[12px] mt-1">错题本</p>
+    </div>
+</nav>
+
+<script>
+// ==================== 工具函数模块 ====================
+const Utils = {
+    $: (id) => document.getElementById(id),
+    $$: (selector) => document.querySelectorAll(selector),
+    debounce: (fn, delay) => {
+        let timer = null;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    },
+    throttle: (fn, delay) => {
+        let flag = true;
+        return (...args) => {
+            if (!flag) return;
+            flag = false;
+            setTimeout(() => {
+                fn.apply(this, args);
+                flag = true;
+            }, delay);
+        };
+    }
+};
+
+// ==================== Toast通知系统 ====================
+const Toast = {
+    show: function(message, type = 'info', duration = 3000) {
+        const container = Utils.$('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+            success: 'fa-check-circle',
+            error: 'fa-times-circle',
+            info: 'fa-info-circle',
+            warning: 'fa-exclamation-triangle'
+        };
+        
+        toast.innerHTML = `
+            <i class="fa ${icons[type]}"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('toast-out');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+    success: function(msg, duration) { this.show(msg, 'success', duration); },
+    error: function(msg, duration) { this.show(msg, 'error', duration); },
+    info: function(msg, duration) { this.show(msg, 'info', duration); },
+    warning: function(msg, duration) { this.show(msg, 'warning', duration); }
+};
+
+// ==================== 表单验证模块 ====================
+const Validator = {
+    isEmpty: (value) => !value || value.trim().length === 0,
+    minLength: (value, len) => value && value.length >= len,
+    patterns: {
+        username: /^[a-zA-Z0-9_]{4,16}$/,
+        password: /^.{6,}$/
+    },
+    validate: function(data) {
+        const errors = [];
+        for (let field in data) {
+            if (this.isEmpty(data[field])) {
+                errors.push(`${field}不能为空`);
+            }
+        }
+        return errors;
+    }
+};
+
+// ==================== 状态管理模块 ====================
+const Store = {
+    state: {
+        currentUser: '',
+        currentQuestionIndex: 0,
+        totalRight: 0,
+        totalWrong: 0,
+        errorQuestionList: [],
+        moduleErrorCount: {},
+        isAnswered: false,
+        examMode: 'random'
+    },
+    listeners: [],
+    
+    subscribe(fn) {
+        this.listeners.push(fn);
+        return () => {
+            this.listeners = this.listeners.filter(l => l !== fn);
+        };
+    },
+    
+    notify() {
+        this.listeners.forEach(fn => fn(this.state));
+    },
+    
+    setState(updates) {
+        Object.assign(this.state, updates);
+        this.notify();
+    }
+};
+
+// ==================== 数据存储模块 ====================
+const DataStore = {
+    KEY: 'userAllData',
+    
+    getAll() {
+        return JSON.parse(localStorage.getItem(this.KEY)) || {};
+    },
+    
+    save(data) {
+        localStorage.setItem(this.KEY, JSON.stringify(data));
+    },
+    
+    getUser(user) {
+        return this.getAll()[user];
+    },
+    
+    userExists(user) {
+        return !!this.getAll()[user];
+    },
+    
+    createUser(user, pwd) {
+        const all = this.getAll();
+        if (all[user]) return false;
+        
+        const moduleErr = {};
+        QuestionBank.getModules().forEach(m => moduleErr[m] = 0);
+        
+        all[user] = {
+            password: pwd,
+            right: 0,
+            wrong: 0,
+            errorList: [],
+            moduleErr: moduleErr
+        };
+        this.save(all);
+        return true;
+    },
+    
+    updateUser(user, data) {
+        const all = this.getAll();
+        if (!all[user]) return;
+        Object.assign(all[user], data);
+        this.save(all);
+    }
+};
+
+// ==================== 题库模块 ====================
+const QuestionBank = {
+    data: [
+        {"title":"1. 碳刷调试安装时应注意问题说法不正确的是","options":["应注意碳刷的工作弯曲面方向,在更换新炭刷时,首先磨出园弧状工作曲面,使 80%以上的碳刷工作面与集电环表面接触","在碳刷架内应伸缩自由,不顺畅时,调整压力","碳刷弹簧要符合要求,压力过小,碳刷会跳动过大,产生火花,压力过大,则磨损 加快｡另外碳刷应在碳刷架正中,防止受力不均匀发生偏磨","集电环表面要保持清洁干净,无油污,保证与碳刷的良好接触"],"answer":1,"module":"单选题","explain":""},
+        {"title":"2. 电动机推力轴承安装完毕后,需用500V 摇表检查,要求轴承对地绝缘不低于","options":["0.1","0.3","0.5","0.7"],"answer":2,"module":"单选题","explain":""},
+        {"title":"3. 制动器装置输入的压力为","options":["0.1~0.3","0.4~0.6","0.6~0.8","0.8~1.0"],"answer":2,"module":"单选题","explain":""},
+        {"title":"4. 泵站水系统分为供水系统和","options":["润滑水","冷却水","排水","消防水"],"answer":2,"module":"单选题","explain":""},
+        {"title":"5. 设备在安装前应进行清洗,需要试压的部件应按规定试压一般方法有","options":["水压","组装","运行","破坏性"],"answer":0,"module":"单选题","explain":""},
+        {"title":"6. 轴流泵中的导轴承承受转动部件的","options":["径向力","轴向力","振动","跳动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"7. 确定水泵是否同一轮系,应以","options":["扬程","叶轮直径","比转数","进水口口径"],"answer":2,"module":"单选题","explain":""},
+        {"title":"8. 根据试验部件的试验性质不同,给定的试验压力也不同,一般是设各全负荷时压力的","options":["1.0~1.25","1.25~1.5","1.5~2.5","2.5~3.5"],"answer":1,"module":"单选题","explain":""},
+        {"title":"9. 用于绝缘､散热､消弧的油是","options":["透平油","润滑油","绝缘油","机械油"],"answer":2,"module":"单选题","explain":""},
+        {"title":"10. 泵站油系统上的阀门应","options":["垂直","横向","垂直横向都可以","任何方向"],"answer":1,"module":"单选题","explain":""},
+        {"title":"11. 油冷却器铜管内结垢,可造成","options":["传热增强､管壁温度升高","传热减弱,管壁温度降低","传热增强,管壁温度降低","传热减弱,管壁温度升高"],"answer":3,"module":"单选题","explain":""},
+        {"title":"12. 水泵轴上只安装一个叶轮的泵叫","options":["单级","双级","单吸","双吸"],"answer":0,"module":"单选题","explain":""},
+        {"title":"13. 全调节泵开机前应将叶片角度调至","options":["最大正角度","零角度","最大负角度","任意角度"],"answer":2,"module":"单选题","explain":""},
+        {"title":"14. 一台水泵运行时,其真空表读数为380mm 汞柱,压力表读数为2.0kg/cm²,则其总扬程约为","options":["20","25","38","40"],"answer":1,"module":"单选题","explain":""},
+        {"title":"15. 水泵出水量的大小与转速","options":["相等","成正比","平方成正比","立方成正比"],"answer":1,"module":"单选题","explain":""},
+        {"title":"16. 水泵的扬程与转速的","options":["1/2 次方","平方","立方","四次方"],"answer":1,"module":"单选题","explain":""},
+        {"title":"17. 水泵的功率与转速的","options":["1/2 次方","平方","立方","四次方"],"answer":2,"module":"单选题","explain":""},
+        {"title":"18. 水泵净扬程(即实际扬程)和进､出水池压力差是","options":["随流量而改变的变数","不随流量而改变的常数","随流量的增大而增大","随流量变小而变小"],"answer":1,"module":"单选题","explain":""},
+        {"title":"19. 轴流泵叶片零度角是","options":["安装角","临界角","设计安装角","基准角"],"answer":2,"module":"单选题","explain":""},
+        {"title":"20. 水泵效率曲线上最高效率点附近的一定范围是水泵的","options":["工作区","工况区","运行区","高效区"],"answer":3,"module":"单选题","explain":""},
+        {"title":"21. 轴流泵导叶体的主要作用是把叶轮流出的水流的旋转运动转变为","options":["径向","轴向","侧向","斜向"],"answer":1,"module":"单选题","explain":""},
+        {"title":"22. 在绘制水泵性能曲线时,一般都用","options":["流量Q","扬程H","功率P","效率 η"],"answer":0,"module":"单选题","explain":""},
+        {"title":"23. 衡量水泵机组工作性能的重要指标是运行的","options":["效率","可靠性","稳定性","安全性"],"answer":2,"module":"单选题","explain":""},
+        {"title":"24. 装置效率是衡量","options":["水泵","电机","水泵机组","抽水装置"],"answer":3,"module":"单选题","explain":""},
+        {"title":"25. 改变水泵叶片安装角的目的是获得","options":["安全运行","稳定运行","最高流量","最高效率"],"answer":3,"module":"单选题","explain":""},
+        {"title":"26. 水泵叶轮切削前后流量之比,等于切削前后叶轮外径","options":["一次方","二次方","三次方","四次方"],"answer":0,"module":"单选题","explain":""},
+        {"title":"27. 切削前后水泵扬程之比,等于切削前后水泵叶轮外径","options":["一次方","二次方","三次方","四次方"],"answer":1,"module":"单选题","explain":""},
+        {"title":"28. 切削前后水泵功率之比,等于切削前后水泵叶轮外径","options":["一次方","二次方","三次方","四次方"],"answer":2,"module":"单选题","explain":""},
+        {"title":"29. 立式全调节轴流泵的调节装置底座与电机罩壳之间加垫的目的是","options":["防止产生震动","消除高程偏差","消除倾斜","防止产生轴电流"],"answer":3,"module":"单选题","explain":""},
+        {"title":"30. 叶片上下部间隙不均匀,上部大,表明定子高程","options":["偏高","偏低","偏大","偏小"],"answer":1,"module":"单选题","explain":""},
+        {"title":"31. 水泵的临界气蚀余量小,说明其吸水性能越好,也就是水泵的抗汽蚀性能","options":["越坏","越好","变化大","变化小"],"answer":1,"module":"单选题","explain":""},
+        {"title":"32. 泵入口处的实际汽蚀余量称为","options":["装置","允许","最小","最大"],"answer":0,"module":"单选题","explain":""},
+        {"title":"33. 小型拍门的安装角度约为","options":["3°","10°","20°","30°"],"answer":1,"module":"单选题","explain":""},
+        {"title":"34. 直接传动是用","options":["联轴器","一对齿轮","离合器","链条"],"answer":0,"module":"单选题","explain":""},
+        {"title":"35. 大型水泵机组电动机主轴与水泵主轴多采用","options":["联轴器","外法兰","套管","十字块"],"answer":1,"module":"单选题","explain":""},
+        {"title":"36. 轴颈和巴氏合金轴瓦的磨损取决于:","options":["油压力","油膜深度","瓦面积","水质"],"answer":1,"module":"单选题","explain":""},
+        {"title":"37. 机组长期停机后,开机前电工需检查的项目是","options":["油缸油位","电机绝缘","空气间隙","配电装置"],"answer":1,"module":"单选题","explain":""},
+        {"title":"38. 单级单吸离心泵,叶轮后盖板上靠轴孔处四周开若干小孔的作用是","options":["提高效率","减少或平衡轴向力","减少负荷","冷却润滑填料"],"answer":1,"module":"单选题","explain":""},
+        {"title":"39. 水泵选配电机配套功率,一般取","options":["1~2","1.5~1.8","0.5~1","1.1~1.3"],"answer":3,"module":"单选题","explain":""},
+        {"title":"40. 镜板的不平度一般不得大于","options":["0.01","0.02","0.03","0.05"],"answer":2,"module":"单选题","explain":""},
+        {"title":"41. 泵站排水系统的排水泵一般都布置在集水廊道的","options":["顶板上","底板上","人孔层","电缆层"],"answer":0,"module":"单选题","explain":""},
+        {"title":"42. 电力排灌泵站设备完好率一般不应低于","options":["80","85","90","95"],"answer":2,"module":"单选题","explain":""},
+        {"title":"43. 机组某些零部件制造精度不够,运输保管不好,安装不符合要求,偏离设计工况运行, 这些都会造成轴线产生","options":["振动","噪声","摆动","位移"],"answer":2,"module":"单选题","explain":""},
+        {"title":"44. 水泵铭牌上的功率就是","options":["输出功率","有效功率","轴功率","配套功率"],"answer":2,"module":"单选题","explain":""},
+        {"title":"45. 润滑水质比较差而含砂量又较大,则水泵轴颈被磨损的可能性要","options":["小于","大于","不小于","不大于"],"answer":1,"module":"单选题","explain":""},
+        {"title":"46. Sh(S)型泵的叶轮是对称布置的,水从叶轮两侧流入,所以","options":["轴向推力","径向压力","跳动","震动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"47. 机组停止运行48 小时后,重新启动应顶起转子,使","options":["镜板与推力头","推力头与推力瓦","镜板与推力瓦","推力头与轴颈"],"answer":2,"module":"单选题","explain":""},
+        {"title":"48. 异步电动机运行时,滚珠轴承温度不应超过","options":["100℃","90℃","80℃","70℃"],"answer":0,"module":"单选题","explain":""},
+        {"title":"49. 水泵机组运行中,B 级绝缘电机定子铁芯最高允许温度不得超过","options":["50","65","75","80"],"answer":2,"module":"单选题","explain":""},
+        {"title":"50. 泵站管理工作的前提是","options":["安全运行","工程完好","设备完好","规章制度"],"answer":0,"module":"单选题","explain":""},
+        {"title":"51. 设备完整无缺､技术状态良好､能保证安全运行的是","options":["一类","二类","三类","需更新"],"answer":0,"module":"单选题","explain":""},
+        {"title":"52. 泵站设备的技术状态基本完好,某些部件有一般性缺陷,定期可以修复,并能保证运行, 此种设备称为","options":["一类","二类","三类","报废"],"answer":1,"module":"单选题","explain":""},
+        {"title":"53. 泵站设备技术状态不好,主要部件有严重缺陷不能安全运行,此种设备称为","options":["一类","二类","三类","四类"],"answer":2,"module":"单选题","explain":""},
+        {"title":"54. 设备完好率是指泵站机电设备的完好台(套)数与","options":["一类设备台(套)数","二类设备台(套)数","三类设备台(套)","总台(套)数"],"answer":3,"module":"单选题","explain":""},
+        {"title":"55. 泵站主要设备评级标准中的一､二类设备是","options":["完好设备","不完好设备","勉强运行设备","需要检修设备"],"answer":0,"module":"单选题","explain":""},
+        {"title":"56. 技术档案工作是泵站","options":["规划","设计","建设","管理"],"answer":3,"module":"单选题","explain":""},
+        {"title":"57. 全调节轴流泵的调节装置有液压式和","options":["自动式","全调式","机械式","半调式"],"answer":2,"module":"单选题","explain":""},
+        {"title":"58. 顶车时需要提供","options":["4.0~6.0MPa","10.0~12.0MPa","6.0~8.0MPa","8.0~1.0MPa"],"answer":1,"module":"单选题","explain":""},
+        {"title":"59. 启闭机机件上的轴承,不论是滚动的还是滑动的,都应保持正常的","options":["位置","尺寸","润滑","清洁"],"answer":2,"module":"单选题","explain":""},
+        {"title":"60. 水泵机组的试运行工作,是在机组","options":["安装","中修","小修","检修"],"answer":0,"module":"单选题","explain":""},
+        {"title":"61. 大型立式轴流泵机组安装时,应定","options":["转轮体","电机定子","导叶体","进水喇叭口"],"answer":2,"module":"单选题","explain":""},
+        {"title":"62. 机组安装高程确定后,必须调整水泵电机各固定部位的平面位置,使各部件中心点重合 在同一条理想的铅垂线上,此项工序称为","options":["轴线测量调整","中心测量调整","垂直同心测量调整","水平测量调整"],"answer":2,"module":"单选题","explain":""},
+        {"title":"63. 空气间隙是否符合要求除设备本身缺陷外,还取决于安装质量的好坏,主要反映在","options":["垂直同心､中心","摆度","间隙","高程"],"answer":0,"module":"单选题","explain":""},
+        {"title":"64. 推力轴承受力调整应和机组","options":["磁场中心","垂直度","高程","中心"],"answer":1,"module":"单选题","explain":""},
+        {"title":"65. 螺杆启闭机螺杆压弯的原因不包括","options":["过载保护没有调节好,起不到作用","闸门摩阻过大","行程开关未调节好,使闸门到达底坎后继续下压","操作不当"],"answer":3,"module":"单选题","explain":""},
+        {"title":"66. 大泵机组的局部性检修是","options":["大修","中修","日常维护","定期检修"],"answer":3,"module":"单选题","explain":""},
+        {"title":"67. 机组定期检修,按内容不同共分为局部性检修､","options":["日常检查","维护性检查","解体检查","电工检修"],"answer":2,"module":"单选题","explain":""},
+        {"title":"68. 工程施工现场,安装水泵机组时,吊装必须由","options":["老职工操作","领导指挥","专人统一指挥","分班负责"],"answer":2,"module":"单选题","explain":""},
+        {"title":"69. 立式轴流泵的安装过程中,推力头与电机轴配合属:","options":["过盈配合","过渡配合","间隙配合","自由公差"],"answer":1,"module":"单选题","explain":""},
+        {"title":"70. 调整机组轴线摆度,常用的而又比较简单的方法是","options":["垫紫铜皮","升高推力瓦","垫推力头锁片","刮削绝缘垫"],"answer":3,"module":"单选题","explain":""},
+        {"title":"71. 机组转动部分对中的基准是水泵的","options":["泵壳中心","后导叶体中心","水导轴窝","底座"],"answer":2,"module":"单选题","explain":""},
+        {"title":"72. 水导轴承检查,属","options":["日常维护","定期","局部性","解体"],"answer":2,"module":"单选题","explain":""},
+        {"title":"73. 定子按水泵实际垂直中心找正时,各半径之差,不应超过设计空间间隙的","options":["±5","±l0","±l5","±20"],"answer":0,"module":"单选题","explain":""},
+        {"title":"74. 按规范要求:“定子铁芯平均中心线等于或高于转子磁极平均中心线,高出值不应超过 定子铁芯有效高度的","options":["0.5%","0.3%","0.2%","0.4%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"75. 水泵机组进行检修工作时,必须建立相应的工作","options":["操作制","检查制","责任制","验收制"],"answer":2,"module":"单选题","explain":""},
+        {"title":"76. 把水泵机组转动部分全部拆卸､处理,然后再安装起来的全过程,称为","options":["局部检修","机组大修","扩大性大修","定期检修"],"answer":1,"module":"单选题","explain":""},
+        {"title":"77. 根据部颁标准,主水泵大修周期为","options":["1-3","2-4","3-5","4-6"],"answer":2,"module":"单选题","explain":""},
+        {"title":"78. 根据部颁标准,主电动机大修周期为","options":["1-3","2-6","3-8","4-10"],"answer":2,"module":"单选题","explain":""},
+        {"title":"79. 水泵机组拆下的零部件,除接触面和","options":["加工面","摩擦面","哈呋面","法兰面"],"answer":1,"module":"单选题","explain":""},
+        {"title":"80. 利用高速气流将熔化的金属液体喷射到被磨损的水泵轴颈的表面以填补的方法称为","options":["电焊","气焊","喷镀","缝焊"],"answer":2,"module":"单选题","explain":""},
+        {"title":"81. 下列关于电气设备直流电阻测量的表述有误的是","options":["通过测量可判断电气设备线圈､绕组的质量，线圈的引线有无折断","通过测量可判断并联支路是否正确，有无短路现象","判断电气设备动､静触头通断状况","在交接预试､大修或有必要时，均需进行此项试验"],"answer":2,"module":"单选题","explain":""},
+        {"title":"82. 关于直流电阻测量的基本方法的下列表述中错误的是","options":["有电桥法和电压降法","电桥法是用单､双臂电桥测量，可以直接读取数值，准确度较高","电桥法在测量感抗值较大的设备绕组的直流电阻时，很快测出直流电阻值","电压降法需要通过计算才能得出直流电阻值"],"answer":2,"module":"单选题","explain":""},
+        {"title":"83. 关于直流电阻测试仪的下列表述中不正确的是","options":["采用先进的开关电源技术","在阳光下不可直接读数，具备手动消弧功能","精度高，速度快，交直流两用便于现场和野外两用","抗干扰能力强，保护功能完善"],"answer":1,"module":"单选题","explain":""},
+        {"title":"84. 3kV 及100kW 以上的交流电动机中性点未引出的，可测量线间电阻，其相互差别不应超过","options":["1%","2%","0.5%","4%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"85. 3kV 及100kW 以上的交流电动机各相绕组的直流电阻值相互差别不应超过最小值的","options":["0.5%","1%","2%","4%"],"answer":2,"module":"单选题","explain":""},
+        {"title":"86. 开关设备应每","options":["3~5","2~4","1~3","1~2"],"answer":2,"module":"单选题","explain":""},
+        {"title":"87. 用直流降压法测量开关设备导电回路接触电阻，电流不小于","options":["10A","20A","50A","100A"],"answer":3,"module":"单选题","explain":""},
+        {"title":"88. 变压器规程规定：1.6MVA 以上变压器各相绕组电阻相互间的差别不应大于三相平均值的","options":["1%","2%","3%","4%"],"answer":1,"module":"单选题","explain":""},
+        {"title":"89. 变压器在不同温度下电阻值换算公式为","options":["R₂=R₁(T+t₂/T+t₁)","R₂=R₁(T-t₂/T-t₁)","R₂=R₁(T-t₂/T+t₁)","R₂=R₁(T+t₂/T-t₁)"],"answer":0,"module":"单选题","explain":""},
+        {"title":"90. 变压器在交接､大修和改变分接头开关位置时，必须测量直流电阻｡规程规定：1.6MVA 以上变压器各相绕组电阻相互间的差别不应","options":["大于，2%，大于，1%","大于，1%，大于，2%","小于，2%，小于，1%","小于，1%，小于，2%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"91. 变压器在交接､大修和改变分接头开关位置时，必须测量直流电阻｡规程规定：1.6MVA 以下变压器各相绕组电阻相互间的差别不应","options":["大于，4%，不大于，2%","大于，2%，不大于，4%","小于，4%，不小于，2%","小于，2%，不小于，4%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"92. 交流电动机《规程》规定：3kV 及以上或100kW 及以上的交流电动机，1 年或大修时或认为必要时，要测量绕组直流电阻｡3kV 及100kW 以上电动机各相绕组的直流电阻值相互差别不应超过最小值的","options":["2%，1%","1%，2%","3%，5%","5%，3%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"93. 下列关于ZC-8 型接地电阻测试仪的特点的表述中有误的是","options":["仪器本身自备电源，不需另外配电源设备","携带方便，操作简单，可以直接从仪表上读取数值","配套齐全，不需另行制作，简化了准备工作","抗干扰能力较差，能用来测大面积接地网接地电阻"],"answer":3,"module":"单选题","explain":""},
+        {"title":"94. 选用ZC-8 型接地电阻测试仪测量输､配电杆塔､独立避雷针等小型接地装置工频接地电阻时，需配用辅助接地棒和下列导线","options":["5m､20m､40m","3m､10m､20m","2m､5m､10m","1m､2m､5m"],"answer":0,"module":"单选题","explain":""},
+        {"title":"95. 接地系统接地电阻的下列判断标准中","options":["交流工作接地，接地电阻不应大于4Ω","安全工作接地，接地电阻不应大于4Ω","直流工作接地，接地电阻不应大于5Ω","防雷保护接地，接地电阻不应大于10Ω"],"answer":2,"module":"单选题","explain":""},
+        {"title":"96. 下列关于接地电阻判定标准表述正确的是","options":["交流工作接地：接地电阻不应大于0.5Ω","安全工作接地，接地电阻不应大于5Ω","直流工作接地，接地电阻应按计算机系统具体要求确定，一般不应大于5Ω","防雷保护接地，接地电阻不应大于10Ω"],"answer":3,"module":"单选题","explain":""},
+        {"title":"97. ZC-8 型接地电阻测试仪，是测量输､配电杆塔､独立避雷针等小型接地装置工频接地电阻专用仪器，其优点不包括","options":["测量精度高､范围宽､数据稳定､重复性好､保护功能完善","仪器本身自备电源，不需要另外配电源设备","配套齐全，不需另行制作，简化了测量准备工作","抗干扰能力较好"],"answer":0,"module":"单选题","explain":""},
+        {"title":"98. 按接地电阻判定标准：交流工作接地，接地电阻不应","options":["大于4Ω","小于4Ω","大于5Ω","小于5Ω"],"answer":0,"module":"单选题","explain":""},
+        {"title":"99. 按接地电阻判定标准：安全工作接地，接地电阻不应","options":["大于4Ω","小于4Ω","大于5Ω","小于5Ω"],"answer":0,"module":"单选题","explain":""},
+        {"title":"100. 按接地电阻判定标准，直流工作接地，接地电阻应按计算机系统具体要求确定，一般不应","options":["小于0.5Ω","小于0.1Ω","大于0.5Ω","小于0.1Ω"],"answer":2,"module":"单选题","explain":""},
+        {"title":"101. 按接地电阻判定标准：防雷保护接地，接地电阻不应","options":["小于5Ω","小于10Ω","大于5Ω","大于10Ω"],"answer":3,"module":"单选题","explain":""},
+        {"title":"102. 按接地电阻判定标准：对于屏蔽系统，如果采用联合接地，接地电阻不应","options":["大于1Ω","小于5Ω","大于5Ω","小于1Ω"],"answer":0,"module":"单选题","explain":""},
+        {"title":"103. 直流电源系统作为独立电源，为泵站的","options":["测量､控制､保护","测量､保护､信号","保护､控制､信号回路､事故照明","测量､控制､事故照明"],"answer":2,"module":"单选题","explain":""},
+        {"title":"104. 下列关于直流电源系统作用的表述有误的是","options":["直流电源系统作为独立电源，为泵站的保护､控制､信号回路､事故照明等负荷提供电源","较为重要､容量较大的泵站，一般采用固定独立的交流供电系统作为操作电源","直流电源系统不受交流系统电源的影响","保证泵站工程安全的同时还保证事故照明"],"answer":1,"module":"单选题","explain":""},
+        {"title":"105. 选择直流电源容量，时间按不少于","options":["30min","50min","20min","10min"],"answer":0,"module":"单选题","explain":""},
+        {"title":"106. 与镉镍电池相比较，铅酸蓄电池的主要优点是","options":["维护工作量小","使用寿命长","体积小","价格低"],"answer":3,"module":"单选题","explain":""},
+        {"title":"107. 与蓄电池使用寿命的长短无关的因素是","options":["初充电状况","平时运行和充放电状况","日常维护检查状况","使用频繁"],"answer":3,"module":"单选题","explain":""},
+        {"title":"108. 泵房系统的接地电阻不应大于","options":["1Ω","4Ω","5Ω","10Ω"],"answer":1,"module":"单选题","explain":""},
+        {"title":"109. 在电气设备上检修维护施工结束后，应按《安规》的要求执行下列相关工作，其中不包括","options":["拆除临时挂设的接地线","移走临时架设的遮拦或围栏","取下临时挂放的警示牌､维修器具，检查维修记录，查验试验报告，打扫场地等","核对现场一次设备和实际运行方式相符的一次系统模拟图"],"answer":3,"module":"单选题","explain":""},
+        {"title":"110. 在电气设备上检修维护时，按照《国家电网公司电力安全工作规程》，安全技术措施应按要求进行准备，其中不包括","options":["停电","验电","接地","拆除违章建筑"],"answer":3,"module":"单选题","explain":""},
+        {"title":"111. 泵房接地系统的接地电阻，不应","options":["小于4Ω，大于4Ω","大于4Ω，小于4Ω","小于4Ω，小于4Ω","大于4Ω，大于4Ω"],"answer":1,"module":"单选题","explain":""},
+        {"title":"112. 为防止人身伤亡事故，应依据国家相关法律法规结合泵站实际制定切实可行的安全规章制度，下列表述错误的是","options":["定期对人员进行安全技术培训，提高安全技术防护水平","定期进行安全制度培训，使运行人员熟练掌握有关安全措施和要求，明确职责，严把质量关","严格执行安全操作规程，杜绝违章作业，违章指挥","不断改善和完善生活设施，减少事故机率"],"answer":3,"module":"单选题","explain":""},
+        {"title":"113. 下列防止人身伤亡事故的措施中，表述有误的是","options":["不断改善和完善安全设施","提高人员在生产活动中的安全性","减少人身事故发生的机率","完善消防安全设施，经常更换消防器材"],"answer":3,"module":"单选题","explain":""},
+        {"title":"114. 防止人身触电伤亡，最根本的是对电气工作人员或用电人员进行","options":["安全教育和管理","技术考核","学历教育","安全用具装备"],"answer":0,"module":"单选题","explain":""},
+        {"title":"115. 检修工作地点，在临近其他可能误登的带电构架上应悬挂","options":["从此上下","在此工作","止步，高压危险","禁止攀登，高压危险"],"answer":3,"module":"单选题","explain":""},
+        {"title":"116. 依据国家相关法律法规的规定，结合泵站实际制定本站切实可行安全规章制度，其中关于防止人身伤亡事故的规定不包含下列","options":["定期对人员进行安全技术培训，提高安全技术防护水平","在技术管理上应采取有效措施，改善变压器的运行条件","定期进行安全制度培训，使运行人员熟练掌握有关安全措施和要求，明确职责，严把安全关","严格按安规行事，杜绝违章作业､违章指挥，提高人员在生产活动中的安全性，减少人身事故发生的机率"],"answer":1,"module":"单选题","explain":""},
+        {"title":"117. 为防止人身伤亡事故，应依据国家相关法律法规的规定，结合泵站实际制定本站切实可行的安全规章制度，下列表述有误的是","options":["定期对人员进行安全技术培训，提高安全技术防护水平","定期进行安全制度培训，使运行人员熟练掌握有关安全措施和要求，明确职责，严把安全关","严格按安规行事，杜绝违章作业､违章指挥，提高人员在生产活动中的安全性，减少人身事故发生的机率","建立健全电缆维护､检查､防火及报警管理等各项规章制度，运行中坚持各项规章制度的执行"],"answer":3,"module":"单选题","explain":""},
+        {"title":"118. 为防止火灾事故发生，应依据国家法规结合泵站实际制定切实可行的消防安全制度，下列相关表述有误的是","options":["电缆不得与易引起火灾的管道同处一室或相近布设，以免引起火灾","电缆室､电缆廊道及电缆向外部连通的通道必须用防火材料封堵","在电缆廊道内每隔50m，充油电缆每隔100m，电缆沟每隔20m，设一个防火分隔物","在电气设备维修时，必须严格执行相关安全制度"],"answer":2,"module":"单选题","explain":""},
+        {"title":"119. 下列防止火灾事故发生的表述中不正确的是","options":["不断改善和完善消防安全设施设备","定期检查和更换消防器材","建立健全电缆维护､检查，防火及报警管理等各项规章制度","运行中不定期进行巡查"],"answer":3,"module":"单选题","explain":""},
+        {"title":"120. 下列在电缆廊道设防火隔物的规定表述有误的是","options":["电缆廊道内每隔150m","充油电缆每隔120m","电缆沟每隔20m","干式电缆每隔100m"],"answer":3,"module":"单选题","explain":""},
+        {"title":"121. 依据国家相关法律法规的规定，结合泵站实际制定本站切实可行安全规章制度，下列关于防止火灾发生事故的规定正确的是","options":["在有电缆的地方工作，不得与其他易引起火灾的管道同处一室或相近布设，以免引起火灾","电缆室､电缆廊道及电缆沟与外部联通的通道必须用防火堵料封堵｡在电缆廊道内每隔1500m，充油电缆每隔1200m，电缆沟每隔200m 设一个防火分隔物","建立健全电缆维护､检查､防火及报警管理等各项规章制度，运行中坚持定期巡查","严格执行操作票､工作票制度，并使两票制度标准化､规范化"],"answer":2,"module":"单选题","explain":""},
+        {"title":"122. 关于恶性电气误操作的下列表述中错误的是","options":["带负荷误拉(合)隔离开关","带电挂(合)接地线(接地刀闸)","带接地线(接地刀闸)合断路器(隔离开关)","误入不带电间隔"],"answer":3,"module":"单选题","explain":""},
+        {"title":"123. 为防止电气误操作事故的发生，必须严格执行《国家电网公司电力安全工作规程》的相关要求，结合泵站实际制定操作规程，下列相关表述有误的是","options":["严格执行操作票､工作票制度，并使两票制度标准化、管理规范化","严格执行调度命令，不允许改变操作顺序","加强防误闭锁装置运行维护管理，确保已装设的防误闭锁装置正常运行","户外防误装置应采取防火､防高温措施"],"answer":3,"module":"单选题","explain":""},
+        {"title":"124. 关于防止电气误操作事故发生的下列措施中不正确的是","options":["采用计算机监控系统的远方就地操作系统要装设电气闭锁装置","规定设置临时地线的地点，不得随意变更","户外设置的接地线端子应在隐蔽处","断路器､隔离开关闭锁回路严禁用重动继电器，应直接用相应设备的辅助触点"],"answer":2,"module":"单选题","explain":""},
+        {"title":"125. 防止电气误操作的措施包括组织措施和","options":["安全措施","绝缘措施","接地措施","技术措施"],"answer":3,"module":"单选题","explain":""},
+        {"title":"126. 下列防止变压器损坏事故的注意事项中表述有误的是","options":["变压器的密封装置应可靠，不得有渗漏，防止水汽进入受潮","加强对变压器瓦斯继电器的巡视","变压器套管渗油时，应及时处理，防止内部受潮损坏","观察油气､油质是否标准"],"answer":3,"module":"单选题","explain":""},
+        {"title":"127. 为防止变压器损坏事故，在巡视检查时应注意的事项中下列表述有误的是","options":["观察油标，油位与油色是否正常","变压器套管渗油时，应及时处理，防止内部受潮损坏","加强对瓦斯继电器的巡视","解除轻瓦斯信号，需经上级主管部门批准｡"],"answer":3,"module":"单选题","explain":""},
+        {"title":"128. 变压器正常运行时的声音是","options":["“嗞嗞”放电声","“啪啪”声","均匀的“嗡嗡”声","强烈的不均匀噪声"],"answer":2,"module":"单选题","explain":""},
+        {"title":"129. 变压器内部受潮，会引起变压器油的电气绝缘强度降低，变压器油的电气绝缘强度的高低决定于油中所含杂质和","options":["酸性","水分","内点","粘度"],"answer":1,"module":"单选题","explain":""},
+        {"title":"130. 断路器是主要的开关设备，选用断路器时，不必考虑的技术参数有","options":["额定电压Uₑ","额定电流Iₑ","额定短路容量Shrn","额定频率fₙ"],"answer":3,"module":"单选题","explain":""},
+        {"title":"131. 下列关于额定断路电流Iᵦᵣ 表述正确的是","options":["它是断路器在额定电压下能正常开断的最大电流，它表明断路器的断路能力","设计时，根据系统断路电流计算值校核选定","当电压不等于额定电压时，断路器能可靠切断的最小的电流，称为该电压下的断路电流","当高于额定电压时，断路电流比额定电流大，但有一最大值，称为极限断路电流"],"answer":0,"module":"单选题","explain":""},
+        {"title":"132. 对断路器选择的基本要求不包括","options":["工作可靠","应具有足够的断路能力","具有尽可能短的切断时间和结构简单､价格低廉","不受环境影响"],"answer":3,"module":"单选题","explain":""},
+        {"title":"133. 开关设备的“五防”连锁功能是指","options":["防误分断路器，防误合断路器，防带电拉合隔离开关，防带电合接地刀闸，防带接地线合断路器","防误分合断路器，防带电拉隔离开关，防带电合接地刀闸，防带接地线合断路器，防误入带电间隔","防误分合断路器，防带电拉隔离开关，防带电合隔离开关，防带电合接地刀闸，防带接地线合断路器","防误分合断路器，防带电拉隔离开关，防带电合隔离开关，防带电合接地刀闸，防误入带电间隔"],"answer":1,"module":"单选题","explain":""},
+        {"title":"134. 下列防止开关设备事故的措施表述有误的是","options":["开关设备的“五防”装置必须可靠和运行正常","严禁使用“五防”装置功能不可靠的开关柜","杜绝在合闸位置推入手车","已投运的设备，“五防”功能不完善的以后再完善，避免事故"],"answer":3,"module":"单选题","explain":""},
+        {"title":"135. 防止发生开关设备事故的下列措施中表述不正确的是","options":["开关设备应按规定的周期检修，尤其加强对绝缘拉杆机构的检查与维修","隔离开关应按规定的周期检修，失修的刀闸必须以后报废，防止事故发生","对不同型号的断路器都应加强绝缘监测，注意预防性试验结果，发现问题及时处理","定期对手车开关本体上的销杆进行检查，防止压杆断裂，防护挡板落下造成三相短路"],"answer":1,"module":"单选题","explain":""},
+        {"title":"136. 高压断路器是配电装置中最重要的","options":["控制","测量","保护","控制和保护"],"answer":3,"module":"单选题","explain":""},
+        {"title":"137. 为防止开关设备事故，下列做法表述有误的是","options":["开关设备的“五防”装置必须经可靠运行正常，“五防”装置功能不可靠的开关柜严禁使用","已投运的设备“五防”功能不完善的尽快完善，避免人身及设备事故；手车每次推入柜内之前，必须检查开关设备的位置，应在合闸位置推入手车，手车操作进柜时应保护平稳，防止猛烈撞击而变形","对不同型号的断路器都应加强绝缘监测，注意预防性试验结果，发现问题及时处理","开关设备应按规定的周期检修，尤其加强对绝缘拉杆机构的检查与维修，防止断路器的绝缘拉杆拉断､拒分､拒合和误动作，以及灭弧室烧毁和爆炸"],"answer":1,"module":"单选题","explain":""},
+        {"title":"138. 为防止开关设备事故，下列做法有误的一项是","options":["隔离开关应按规定的周期检修，对失修的刀闸立即维修，防止事故发生","根据电气预防性试验结果，加强对隔离开关转动部件､接触部件､操作机构､机械及电气闭锁装置的检查和润滑，并进行操作试验，防止机械卡涩､触头过热､绝缘子断裂等事故发生，确保隔离开关操作运行可靠","定期对手车开关本体上的销杆进行检查，防止压杆断裂，防护挡板落下造成三相短路","运行中的设备应保持清洁，应定期清扫，防止污秽"],"answer":0,"module":"单选题","explain":""},
+        {"title":"139. 下列手车断路器的基本操作方法和注意事项表述有误的是","options":["改变手车位置时，必须先检查确认手车断路器在合闸位置","手车位置改变后要观察位置指示器(灯)的变化，防止手车不到位而影响指示和控制","手车不允许停留在运行位置和试验位置之间的任何中间位置，并且必须确保到位并定位锁死","手车拉出后，应观察静触头隔离挡板是否已落下"],"answer":0,"module":"单选题","explain":""},
+        {"title":"140. 关于手车断路器的基本操作方法和注意事项的下列表述中有误的是","options":["接地开关处于合闸位置时，手车不能从检修或试验位置移至运行位置","仅当手车处于试验或检修位置时，接地开关才能操作","只有后柜门关闭时，方可操作接地开关","手车控制线插头插上前，先送上手车断路器的储能电源"],"answer":3,"module":"单选题","explain":""},
+        {"title":"141. KYN-10 型高压开关柜利用","options":["电磁锁","程序锁","机械联锁","电气互锁"],"answer":0,"module":"单选题","explain":""},
+        {"title":"142. 真空断路器主要用于泵站","options":["3~10kV","0.4~1kV","35~110kV","110~220kV"],"answer":0,"module":"单选题","explain":""},
+        {"title":"143. 下列防止直流系统故障的方法中错误的是","options":["严格控制浮充电运行方式和参数，保证蓄电池组的电压","对仅有一台浮充电装置的，发现问题后应及时处理，确保充电装置运行状态良好","充电装置应不定期检查其稳流程度","直流系统的报警检测信号引至中控室"],"answer":2,"module":"单选题","explain":""},
+        {"title":"144. 下列为防止直流系统故障的措施中表述错误的是","options":["熟悉直流系统图，防止误操作","直流系统的各种设备铭牌及标志牌应清晰","直流系统熔断器容量选择要合理，防止越级熔断，扩大事故范围","停运保护装置电源的供电母线，必须经运行值班员同意"],"answer":3,"module":"单选题","explain":""},
+        {"title":"145. 为防止直流系统故障，下列做法不正确的是","options":["加强对蓄电池组的维护与管理，确保蓄电池组能提供可靠的供电电源｡严格控制浮充电运行方式和参数，保证蓄电池组的电压","保证充电装置的安全稳定运行，对仅有一台充电装置发现问题及时处理，确保装置运行状态良好","充电装置在发现冲击掉闸时，分别检查充电装置过流保护定值和蓄电池是否有异常，发现问题及时处理","直流系统设置要合理，控制､保护､合闸母线不应分开运行"],"answer":3,"module":"单选题","explain":""},
+        {"title":"146. 为防止直流系统故障，下列做法不正确的是","options":["直流系统的报警检测信号引至中控室","直流系统熔断器容量选择要合理，防止越级熔断，扩大事故范围","直流系统设置要合理，控制､保护､合闸母线应分开运行，防误闭锁装置的直流操作电源必须单独设置","直流系统通过绝缘监察装置检测发现绝缘电阻下降或发现接地现象，要立即检查处理先停运保护母线，然后向站技术负责人汇报"],"answer":3,"module":"单选题","explain":""},
+        {"title":"147. 下列泵站系统高压母线装设的保护中不应包括","options":["带时限的电流速断保护，动作时，断开进线断路器","低电压保护，动作时，断开进线断路器","单相接地故障监视，动作时，发信号","功率方向保护，动作时，断开进线断路器"],"answer":3,"module":"单选题","explain":""},
+        {"title":"148. 下列进行微机继电保护装置检验注意事项中，不应包括","options":["应充分利用其自检功能","断安装，全部和部分检验的重点应放在微机继电保护装置的外部接线和二次回路","保护装置的检验工作宜与被保护的一次设备检修同时进行","一次系统运行方式变化，继电保护定植应重新核算"],"answer":3,"module":"单选题","explain":""},
+        {"title":"149. 关于泵站继电保护选择的基本要求中，不包括","options":["可重复性","灵敏性","选择性","速动性"],"answer":0,"module":"单选题","explain":""},
+        {"title":"150. 下列关于系统电压母线装设的保护正确的是","options":["直流系统通过绝缘监测装置检测发现绝缘电阻下降或发现接地现象要立即检查处理，经停运保护母线必须经站技术负责人同意","装设电动机过负荷保护，分二个时限设定，第一时限发信号，第二时限动作跳开断路器，其动作时限整定应大于机组启动时间","带时限电流速断保护，动作时，断开进线断路器","同步电动机应装设失步､失磁保护｡失磁保护瞬时段开，失步保护带时限断开"],"answer":2,"module":"单选题","explain":""},
+        {"title":"151. 下列对于微机保护装置表述不正确的是","options":["电动机软启动设置于一个综合保护单元内","对于常规保护如过电流保护､过负荷带时限保护､低电压保护等每台机组均设置于一个综合保护单元内","纵联差动保护设置于一个综合保护单元内","非电量参数采集､控制集中于一个综合保护单元内"],"answer":0,"module":"单选题","explain":""},
+        {"title":"152. 根据《微机继电保护装置运行管理规程》要求，关于工程管理下列注意事项中表述正确的是","options":["继电保护设备订货合同中的技术要求应明确微机保护软件版本，制造厂商提供的微机保护装置软件版本及说明书应与订货合同中的技术要求一致","新微机保护装置投入运行后，应按照继电保护部门下发的微机保护条例通知，核对微机保护装置版本，结果注意记录","新建､扩建､改建工程使用微机继电保护装置，发现损坏，请维修人员修理后才可投入使用","对于基建､技改工程，应配置必要的继电保护运输设备"],"answer":0,"module":"单选题","explain":""},
+        {"title":"153. 下列不属于系统电压母线装设的保护是","options":["带时限电流速断保护，动作时，断开进线断路器","过电压保护，动作时，断开进线断路器","单相接地故障监视，动作时，发信号","低电压保护，动作时，断开进线断路器"],"answer":1,"module":"单选题","explain":""},
+        {"title":"154. 下列对于电动机相间短路保护类型的表述有误的是","options":["2000kW 以下采用两相式电流速断保护装置，2000kW 及以上采用纵联差动保护装置","装设低电压保护，动作时限宜整定为30s，动作于断开电动机断路器","装设单相接地保护，当接地电流低于10A，可动作于跳开断路器，也可动作于发信号；当接地电流等于或大于10A 时，动作于跳开断路器","装设过负荷保护，分二个时限设定：第一时限发信号，第二时限动作跳开断路器，其动作时限整定应大于机组起动时间"],"answer":1,"module":"单选题","explain":""},
+        {"title":"155. 下列对选择保护装置的原则表述有误的一项是","options":["选择性：在故障情况下，使距离故障点最远的开关首先断开","灵敏性：装置保护范围内发生不正常工作状态时，保护装置根据设定要求的反应能力｡主保护灵敏度高，二级保护相对次之","可靠性：保护装置必须可靠工作，且接线要简单，触电回路要少，尽量减少装置在发生故障时，拒动或不发生故障时的误动","速动性：根据保护类型的不同，无论是哪种类型装置在其工作范围内都必须迅速执行设置命令"],"answer":0,"module":"单选题","explain":""},
+        {"title":"156. 根据《微机继电保护装置运行管理规程》要求，下列对工程管理要求表述有误的是","options":["继电保护设备订货合同中的技术要求应明确微机保护软件版本｡制造厂商提供的微机保护装置软件版本及说明书应与订货合同中的技术要求一致","新微机继电保护装置投入运行前，应按照继电保护部门下发的微机保护软件版本通知，核对微机保护装置版本，并将结果上报继电保护部门","新设备投入运行前，基建单位应按继电保护竣工验收有关规定与运行单位进行图样､仪器仪表､调试专用工具､备品备件和试验报告等移交工作","现场微机继电保护装置定值的变更，应按上级通知的要求执行，并依照规定日期完成｡如根据二次系统运行方式的变化，需要变更运行中保护装置的整定值时，应在值班记录上说明"],"answer":3,"module":"单选题","explain":""},
+        {"title":"157. 根据《微机继电保护装置运行管理规程》要求，下列对定值管理要求表述正确的是","options":["现场微机继电保护装置定值的变更，应按上级通知的要求执行，并依照规定日期完成｡如根据二次系统运行方式的变化，需要变更运行中保护装置的整定值时，应在值班记录上说明","对新安装的微机继电保护装置进行验收时，应以订货合同､技术协议､设计图样和技术说明书等有关规定为依据，按有关规程和规定进行调试，并按上级通知进行整定｡检验整定完毕方允许投入运行","新微机继电保护装置投入运行前，应按照继电保护部门下发的微机保护软件版本通知，核对微机保护装置软件版本，并将结果记录","定值通知单应有计算人､审核人签字并加盖“继电保护专用章”方能有效"],"answer":3,"module":"单选题","explain":""},
+        {"title":"158. 根据《微机继电保护装置运行管理规程》要求，下列对检验管理要求表述正确的是","options":["新建､扩建､改建工程使用微机继电保护装置，发现质量不合格的，应由检验方负责处理","新安装､全部和部分检验的重点应放在微机继电保护装置的外部接线盒回路","进行微机继电保护装置的检验时，应充分利用采集功能，主要检验自检功能检测的项目","微机继电保护装置检验工作宜与被保护的一次设备检修同时进行"],"answer":3,"module":"单选题","explain":""},
+        {"title":"159. 产生断路器跳合闸回路故障的主要原因中，下列","options":["断路器机构传输不灵活","弹簧储能机构未储能","蓄电池电压过高","合闸电磁铁故障"],"answer":2,"module":"单选题","explain":""},
+        {"title":"160. 二次操作回路维护工作，除必须遵守《电业安全工作规程》外，还应遵循以下","options":["清扫柜(屏)及端子排内的积尘，保持端子及屏柜清洁，检查屏柜上的各种元件的标志是否齐全，不应有脱落等现象","断路器的辅助触点应无烧伤､氧化､卡涩等现象","继电器接点应无烧伤，线圈外观无异常，运行正常","至少有两人进行工作，且必须有明确的工作目的和工作方法"],"answer":3,"module":"单选题","explain":""},
+        {"title":"161. 断路器跳合闸回路常见故障是，合闸线圈或合闸接触线圈长时间带电流，导致合闸线圈或合闸接触线圈､合闸保持继电器､合闸接触器接点等烧毁或烧坏等｡产生这些故障的主要原因最可能是","options":["二次中性点未接地或多点接地","二次回路绝缘材料不合格，绝缘性能低，或年久失修，严重老化","蓄电池能量不足，断路器机构传动失灵，弹簧储能机构失灵，合闸电磁铁故障等","小动物爬入或小金属零件掉落元件上"],"answer":2,"module":"单选题","explain":""},
+        {"title":"162. 下列控制保护回路潜在故障查找常用方法中表述错误的是","options":["替换法","参照法","断接法","直观法和逐项排除法"],"answer":2,"module":"单选题","explain":""},
+        {"title":"163. 对于二次线路检修及巡查的内容表述有误的是","options":["清扫柜(屛)及端子排内的积尘，保持端子及柜(屛)清洁，检查屏柜上的各种元件的标志是否齐全，不应有脱落现象","各指示灯具､仪表应完好，无破损，保护压板在要求的位置上","断路器的辅助触点断开完好，部件完整，应无烧伤，有氧化､卡涩等现象，线圈外观异常，运行正常","所有接线端子､压板应无松动､锈蚀，配线固定卡子无脱落"],"answer":2,"module":"单选题","explain":""},
+        {"title":"164. 关于二次线路检修及巡查的内容下列说法有误的是","options":["清扫柜(屛)及端子排内的积尘，保持端子及柜(屛)清洁，检查屏柜上的各种元件的标志不应齐全，应有脱落､烧伤､现象､氧化等现象","各指示灯具､仪表应完好，无破损，保护压板在要求的位置上","电压､电流互感器二次侧接地完好，二次侧交直流控制回路及电压互感器的熔断器应良好","信号继电器是否掉牌，以及掉牌后是否能复位；警铃､蜂鸣器是否良好"],"answer":0,"module":"单选题","explain":""},
+        {"title":"165. 对于二次操作回路维护必须遵循的原则下列表述不正确的是","options":["如果进行整组试验，应事先查明是否与断路器有关；对变压器进行试验，应先切除对应的电源回路，以免影响机组运行","在运行中测量电源回路上的电流时，应事先检查接头及引线是否良好，并应防止电流回路开路发生人身和设备事故｡通常应通过试验端子测量电流，测量仪表应用螺钉连接，操作人员站在绝缘垫上进行","在机组运行时，只有在必须停用保护装置时，才允许停用保护装置，且停用的时间应尽量短，雷雨天气不得将保护装置退出","如果需连接短路，如拧动螺栓､拆动二次线或松动压板，必须先核对图纸，并做好记录和标志，工作结束后应立即结束，并做全面检查"],"answer":0,"module":"单选题","explain":""},
+        {"title":"166. 下列不是保护回路常见故障的是","options":["电压互感器开口三角回路故障","互感器二次失压","微机保护装置接地故障","断路器跳合闸回路故障"],"answer":2,"module":"单选题","explain":""},
+        {"title":"167. 下列不是产生断路器跳合闸回路故障的主要原因的是","options":["断路器机构传输不灵活","弹簧储能机构未储能","合闸保险熔断未合或接触不良","二次回路绝缘材料不合格"],"answer":3,"module":"单选题","explain":""},
+        {"title":"168. 下列关于直流系统接地故障产生的原因表述错误的是","options":["二次回路绝缘材料不合格，绝缘性能低，或年久失修，严重老化","二次回路及二次设备严重污秽和受潮，接线盒进水，使绝缘严重下降","小动物爬入或小金属零件掉落元件上造成直流接地故障","直流系统接地装置传输不灵活"],"answer":3,"module":"单选题","explain":""},
+        {"title":"169. 规程规定，直流接地达到下述","options":["直流电源为220V，接地电压50V 以上；直流电源为24V，接地电压6V 以上","直流电源为220V，接地电压500V 以上；直流电源为50V，接地电压10V 以上","直流电源为220V，接地电压50V 以上；直流电源为50V，接地电压6V 以上","直流电源为380V，接地电压100V 以上；直流电源为24V，接地电压6V 以上"],"answer":0,"module":"单选题","explain":""},
+        {"title":"170. 下列对于控制保护回路故障逐项拆除法的表述有误的是","options":["先将并联在一起的二次回路顺序分开，然后再一次投入，一旦故障出现，就表明故障存在哪路，再在这一路内用同样的方法查找更小的分支回路，直至找到故障点","主要用于查找直流接地，交流电源熔丝投不上等故障","如查找电压互感器二次熔丝熔断，回路存在短路故障，或二次交流电压互串等，可以从电压互感器二次短路相的总引出处端子分离，此时故障消除，然后逐个恢复，直至故障出现，再分支路排查","查找时，切断各直流支路电源时间要短，一般不要超过10 秒"],"answer":3,"module":"单选题","explain":""},
+        {"title":"171. 运用控制保护回路故障逐项拆除法查找故障点时切断各直流支路电源时间要短，一般不超过","options":["1 秒","3 秒","5 秒","7 秒"],"answer":1,"module":"单选题","explain":""},
+        {"title":"172. 下列关于造成隔离开关操作机构失灵的原因的表述有误的是","options":["机构箱进水","各部轴销､连杆､拐臂､底架甚至底座不灵活，造成拒分拒合或分合不到位","连杆､传动连接部位､闸刀触头架支撑件等强度不足断裂，造成分合闸不到位","保险丝熔断，二次元件老化损坏"],"answer":1,"module":"单选题","explain":""},
+        {"title":"173. 对于隔离开关操作机构失灵处理措施下列表述不正确的是","options":["对机构及锈蚀部分进行解体检修，更换不合格元件","加润滑剂､加装防雨罩｡机构存在的问题严重或有先天缺陷，应更换新机型","对于电动机构出现隔离开关拒动等故障时，首先是检查各相关元件，然后再检查操作电源是否完好，熔断器是否熔断","发现元件损坏时应更换，并查明原因"],"answer":2,"module":"单选题","explain":""},
+        {"title":"174. 下列对故障查找及处理方法表述有误的是","options":["替换法｡用好的或认为是正常的相同元件代替被怀疑的或认为有故障的元件，来判断它的好坏，可以快速缩小查找范围","参照法｡通过正常与非正常设别技术参数参照，从不同处找出不正常设备的故障点","短接法｡将回路某一段或某一部分用短接线短接，来判断故障时存在短接范围内，还是在其他地方，以此来缩小故障判断范围","直观法｡主要用于电磁锁失灵､电流回路开路､切换继电器不动作，判断转换开关接点是否良好"],"answer":3,"module":"单选题","explain":""},
+        {"title":"175. 在机组运行中，对发现异常现象的电压互感器进行处理时，首先应退出响应的保护装置，以免引起误动作｡下面对其常见故障描述有误的是","options":["高､低熔丝熔断｡现象为光字牌灯亮､电压表指示不正常，甚至会导致低电压继电器动作","互感器表面闪络｡闪络是由于表面龟裂､受热､绝缘下降引起的｡需清理绝缘","发热､油温高，可能是内部局部短路或接地造成的","油色变质，油位下降，可能是渗油､进水等原因导致"],"answer":1,"module":"单选题","explain":""},
+        {"title":"176. 在机组运行中，对发现异常现象的电压互感器进行处理时，首先应退出相应的保护装置，以免引起误动作｡下面对其常见故障处理有误的是","options":["高､低侧熔丝熔断｡高压侧，应检查电压互感器是否被击穿，绝缘是否合格，然后更换熔丝；低压侧，应检查二次回路是否短路､二次回路绝缘是否下降或损坏，处理好，更换熔丝","发热､温度高｡如果是内部局部短路，需退出运行，查明原因并处理好再投运｡但如果内部发出焦味､冒烟着火，互感器可能会爆炸，应立即退出运行，更换互感器","油色变质､油位下降｡应检查绝缘(更换套管)，经检验合格再投运","若电压互感器运行时内部有异常声音(如放电)，应立即退出运行检测，处理后再投运"],"answer":2,"module":"单选题","explain":""},
+        {"title":"177. 电气设备的集中性缺陷，不包括下列","options":["绝缘子瓷质开裂","电动机局部磨损，挤压破裂","电气设备由于局部放电绝缘逐步损伤","电气设备整体绝缘性能下降"],"answer":3,"module":"单选题","explain":""},
+        {"title":"178. 一般情况下，下列哪些因素最可能造成电气设备的绝缘产生缺陷","options":["潮湿和过电压","天气干燥","气候受冷","清扫表面"],"answer":0,"module":"单选题","explain":""},
+        {"title":"179. 填写的电气预防性试验报告应规范，报告中一般不包括","options":["试验设备名称､重要试验仪器编号","详细的工作计划","主要试验人员､记录人､试验负责人签名","试验时间和大气环境条件､温度､湿度､气压，如油浸变压器还要注明上层油温等"],"answer":1,"module":"单选题","explain":""},
+        {"title":"180. 建立电气试验室，在交接验收后，日常管理要按照","options":["《电气设备预防性试验规程》(DL/T457-2000)标准","《电力设备预防性试验规程》(DL/T456-1996)标准","《电气设备预防性试验规程》(DL/T576-2000)标准","《电力设备预防性试验规程》(DL/T596-1996)标准"],"answer":3,"module":"单选题","explain":""},
+        {"title":"181. 对于泵站高压绝缘试验的方法，下列表述有误的是","options":["泵站高压绝缘试验的方法很多，大致可分为非破坏性试验和破坏性试验两类","非破坏性试验是指在较低的电压下测定电气设备的绝缘的某些特征(如绝缘电阻､介质损耗､局部放电､电压分布等)及其变化情况","破坏性试验是模仿设备绝缘在运行中实际可能碰到的危险的过电压状况，对绝缘加上与之等价的高电压来进行试验","为尽可能避免试验过程中损坏设备，常在破坏性试验之前先进行一系列的耐压试验作初步分析判断，发现问题及时处理"],"answer":3,"module":"单选题","explain":""},
+        {"title":"182. 对于非破坏性试验下列说法有误的是","options":["该项试验一般是在较高的电压(或者是高于额定电压)的情况下进行试验","试验项目主要有：测量设备绝缘电阻､泄露电流和介质损耗因数dtg､线圈直流电阻等项目","电力设备的绝缘电阻的测量是常规性试验中应用最广也是最直接与简单的试验方法","试验目的是判断设备绝缘状况好坏，及时发现可能的劣化现象"],"answer":0,"module":"单选题","explain":""},
+        {"title":"183. 对于破坏性试验下列表述中有误的一项是","options":["在高于工作电压情况下进行的试验成为破坏性试验","试验时在设备绝缘上施加规定的电压(逐次升高)，考验设备绝缘对此电压耐受能力，这种试验常叫耐压试验","在进行破坏性试验时，应先进行耐压试验，然后再进行非破坏性试验，破坏性试验结束，还应进行相关破坏性试验检查，以避免不应有的绝缘击穿事件发生","常规预试项目较多，但对于某一具体设备并不是每一项目都做，我们只需按《电力设备预防性试验规程》(DL/T 596-96)要求进行即可"],"answer":2,"module":"单选题","explain":""},
+        {"title":"184. 下列对试验人员的要求中表述有误的是","options":["必须具备良好素质，熟练的试验操作技术","了解泵站的电气主接线和相关辅助系统的接线","能正确完成试验接线，操作及测量，熟悉外界影响的因素，并加以消除","能对试验结果与参数交上级主管部门进行计算､分析､判断"],"answer":3,"module":"单选题","explain":""},
+        {"title":"185. 下列对试验工作要求表述有误的是","options":["制定详细的工作计划","做好周密的工作准备","合理的整理试验场地","改善和完善消防安全设施"],"answer":3,"module":"单选题","explain":""},
+        {"title":"186. 关于对试验工作要求的下列表述中错误的是","options":["改善和完善生活设施","合理的整理试验场地","试验接线清晰明了，没有错误","操作顺序有条不紊，连接恰当"],"answer":0,"module":"单选题","explain":""},
+        {"title":"187. 对试验报告规范填写内容的下列表述中错误的是","options":["填写试验名称､目的要求和采用的技术规范","填写被试验设备名称､运行编号和相关技术参数","填写试验时间和大气环境条件","填写电气设备和一次接线图"],"answer":3,"module":"单选题","explain":""},
+        {"title":"188. 下列关于试验报告规范填写的内容表述有误的是","options":["试验设备名称及重要试验仪器编号","试验结果必要时应换算到10℃值","试验接线及示意图､试验部位､试验项目及原始试验数据","主要试验人员､记录人､试验负责人签字"],"answer":1,"module":"单选题","explain":""},
+        {"title":"189. 下面哪项对规范的试验报告所必须项目的表述有误","options":["试验名称和目的要求､技术规范","试验接线及示意图､试验部位､试验项目及原始试验数据","试验时间和大气环境条件､温度､湿度､气压，如油浸变压器还要注明上层油温等","主要试验人员､记录人和生产厂家负责人签字"],"answer":3,"module":"单选题","explain":""},
+        {"title":"190. 下列关于试验工作中的安全措施表述有误的是","options":["现场必须执行工作票制度","现场必须装设遮拦或围栏，悬挂安全警示标牌，并派专人看守，被试验设备两端不在同一地点时，另一端应派专人看守","高压试验工作不得少于两人，负责人应由值班员担任","拆开电气设备接头，应做好标记，恢复连接后应作检查"],"answer":2,"module":"单选题","explain":""},
+        {"title":"191. 关于试验工作中的安全措施下列要求有误的是","options":["试验装置电源开关，应使用明显断开的双机开关，并保证有两个串联断开点和可靠的过载设施","加压前，必须认真检查系统接线，核对所用仪器仪表正确无误","变更接线或试验结束，应断开电源，验电，将升压装置低压部分接地","来装接地线的大电容试品，应作放电试验"],"answer":2,"module":"单选题","explain":""},
+        {"title":"192. 下列关于试验工作安全措施的表述中错误的是","options":["试验器具金属外壳应可靠接地","高压引线应尽量加长，必要时用绝缘物支撑牢固","拆开电气设备接头，应做好标记，恢复连接后应做检查","为了保证高压回路任何部分不对接地体放电，高压回路与接地体必须留有足够的距离"],"answer":1,"module":"单选题","explain":""},
+        {"title":"193. 下列哪项对试验人员在试验现场必须具备的安全措施表述不正确","options":["现场必须装设遮拦或围栏，悬挂安全警示标牌，并派专人看守；试品两端不在同一地点，另一端还应派人看守","高压试验工作不得少于两人，负责人应由有经验的人员担任｡试验前负责人应对主要试验人员详细布置安全事项","试验器具金属外壳应可靠接地，高压引线应尽量缩短，必要时用绝缘物支撑牢固，为了保证高压回路任何部分不对接地体放电，高压回路与接地体必须留有足够的距离","未装设接地线的大电容试品，应先放电试验，进行高压直流试验时，每告一段落或试验结束后，应将被试品放电数次后方可接触"],"answer":1,"module":"单选题","explain":""},
+        {"title":"194. 下列电气设备基本试验项目中不应包括","options":["直流电阻测量","绝缘电阻和吸收比测量","油色谱分析","交流耐压试验"],"answer":2,"module":"单选题","explain":""},
+        {"title":"195. 下列哪种型号的兆欧表属于低压兆欧表","options":["2500V","5000V","GJC-3000","ZC90"],"answer":3,"module":"单选题","explain":""},
+        {"title":"196. 电气预防性试验基本试验项目规定：需要测量设备的","options":["额定容量","直流电压","直流电流","直流电阻"],"answer":3,"module":"单选题","explain":""},
+        {"title":"197. 当直流电压作用于任何介质上时，通过它的电流不包含","options":["电导电流","电容电流","电感电流","吸收电流"],"answer":2,"module":"单选题","explain":""},
+        {"title":"198. 交流耐压试验中在选择试验变压器时应考虑因素的下列表述正确的是","options":["被试品试验电压高于试验变压器输出电压","试验变压器额定输出电流应小于被试品所需的电流，被试品电流可按其电容估算｡Iₛ=UₛωCₓ，其中，Cₓ 包括被试品和附加电容","任何被试品在耐压试验前，应测量直流电阻，合格后再做试验","试验变压器容量：根据试验变压器输出额定电流与额定电压，确定试验变压器的容量P=IU"],"answer":3,"module":"单选题","explain":""},
+        {"title":"199. 关于使用电桥测量直流电阻时的下列注意事项中表述正确的是","options":["连接线要拧紧，避免减小接触电阻，产生测量误差｡连接导线应尽量使用截面较大､较短､减少连接线电阻，提高测量准确度","测量时，先按电源按钮，操作时先粗调旋钮，调比例臂，待检流计接近零时，再细调，待检流计指零后读数","电桥电池电压不足会影响测量精度，需更换｡外接电源应注意其极性，并并联一个保护电阻","电桥使用，应先拆被测电阻，再拆除电源，再将检流计锁扣扣上，防止搬运中震断游丝"],"answer":1,"module":"单选题","explain":""},
+        {"title":"200. 以下对应用兆欧表测量绝缘电阻应注意的问题表述有误的是","options":["在测量中，应尽量选用最大输出电流为5mA 及以上的兆欧表，以使得到较准确的测量结果","兆欧表与被试品间的连线不能绞线或拖地，否则会产生测量误差","高压兆欧表在表壳玻璃上配接的铜导线，不要随意拆除","兆欧表的L 和E 端子的接线不能对调，否则对测量结果有影响"],"answer":0,"module":"单选题","explain":""},
+        {"title":"201. 用K=R60/R15 表示吸收比｡当K=1 时，绝缘严重受潮或有损坏，当κ 值远大于1 时，绝缘情况良好，规程规定一般情况下","options":["K ≤ 1.1","K ≤ 1.2","K ≥ 1.3","K ≥ 1.5"],"answer":2,"module":"单选题","explain":""},
+        {"title":"202. 在选择交流耐压试验的试验变压器时下列表述有误的是","options":["试验变压器输出电压应高于被试品试验电压","试验变压器额定输出电流应大于被试品所需的电流","试验变压器容量：根据试验变压器输出额定电流与额定电压，确定试验变压器的容量P=IU","试验变压器最大输出电流应小于被试品所需的电流"],"answer":3,"module":"单选题","explain":""},
+        {"title":"203. 交流耐压试验应注意事项的下列表述中错误的是","options":["试验时周围环境温度不宜低于+10℃.空气相对湿度不高于70%","试验时加到标准试验电压后的持续时间，无特殊说明均为1 分钟，其他按有关设备试验方法规定执行","升压必须从零开始，切不可冲击合闸","任何被试品在耐压试验前，应测量绝缘电阻，合格后再进行试验"],"answer":0,"module":"单选题","explain":""},
+        {"title":"204. 下列选项中，对交流耐压试验应注意事项表述有误的是","options":["试验接线一切接好后，经检查确认，然后开始试验","试验时加到标准试验电压后的持续时间，无特殊说明均为3 分钟，其他按有关设备试验方法规定执行","在75%试验电压之前，升压速度可以任意，自75%试验电压开始，升压速度应均匀，约按每秒2%试验电压升压｡耐压试验后，迅速均匀降压到零，然后切断电源","升高过程中应密切监视高压回路，监听被试品有何异响，升至试验电压，开始计时并读取相关数值，时间到后，迅速均匀降压并切断电源，试验中如无破坏性放电或击穿发生，则认为试验通过"],"answer":1,"module":"单选题","explain":""},
+        {"title":"205. 交流耐压试验时，升压必须从零开始，切不可冲击合闸｡在75%试验电压之前，升压速度可以任意，自75%试验电压开始，升压速度应均匀，约按","options":["每秒1%试验电压","每秒2%试验电压","每秒3%试验电压","每秒5%试验电压"],"answer":1,"module":"单选题","explain":""},
+        {"title":"206. 交流耐压试验时，试验回路中电流表指示突然上升，说明被试品已被击穿，但当Xc 与试验变压器漏抗X1 之比","options":["小于2","大于2","等于2","不大于2"],"answer":0,"module":"单选题","explain":""},
+        {"title":"207. 根据交流耐压试验中控制回路的状况来分析，下列表述有误的是","options":["如果过电流继电器整定值适当，当被试品击穿，过流继电器动作，自动控制开关跳闸","整定值过小，电容电流的充电作用就能使开关跳闸","整定值过大，即使被试品放电或小电流击穿都不会跳闸，过电流继电器的整定值一般整定为试验变压器额定电流的1.3~1.5 倍","整定值过大，电容电流的充电作用就能使开关跳闸"],"answer":3,"module":"单选题","explain":""},
+        {"title":"208. 电力设备局部放电试验是电力设备绝缘的主要试验项目，其参数是评价电力设备质量的重要指标｡对于电力设备局部放电试验下列选项中表述有误的是","options":["设备的局部放电是指设备绝缘系统中部分被击穿的电气放电，这种放电只能发生附近","视在放电量，是指在试品的两端注入一定电荷量，使试品端电压的变化量和局部放电时端电压的变化量相同，此时注入的电荷量即称的局部放电的视在电荷量｡以皮库(PC) 表示","局部放电起始电压Ui 是指试验电压从不产生局部放电的较低电压逐渐增加时，在试验中局部放电量超过某一规定值时的最低电压值","局部放电熄灭电压Ue：是指试验电压从超过局部放电起始电压的较高值逐渐下降时，在试验中局部放电量小于某一规定值时的最高电压值"],"answer":0,"module":"单选题","explain":""},
+        {"title":"209. 测量接地电阻只能用交流测量，因为土壤导电通常是经过水溶液，如果用直流测量，则会在正负电极上电解成气泡，","options":["减小，增加","增加，减小","减小，减小","增加，增加"],"answer":0,"module":"单选题","explain":""},
+        {"title":"210. 对于测量介质损耗因数dtg 的表述，下列选项中有误的是","options":["利用介质损失角dtg 的结果可判断电气设备绝缘状况，且比较灵敏","dtg 在测量中对比影响的因素有电磁干扰温度､试验电压､试品电容等","对于dtg 的分析，一是同每月测试结果比较，二是与同类设备比较，看它们之间有无明显差异","dtg 与试验电压关系曲线可判断绝缘介质中是否存在较多气隙"],"answer":2,"module":"单选题","explain":""},
+        {"title":"211. 关于测量设备的泄漏电流试验下列表述有误的是","options":["影响测量结果的重要因素是杂散电流，对于绝缘良好的被试品，内部泄露电流很小","据试验结果判断设备绝缘状态的好坏，将试验电压值保持规定的时间后，微安表的指针没有向下降的方向突然摆动，我们认为被试品有破坏性放电","测量泄露电流与测量设备的绝缘电阻原理相同，只是测量泄露电流时施压在被测设备上的直流电压比兆欧表的额定输出电压高，测量中所采用的微安表的准确度比兆欧表高，同时，还可以随时监测泄露电流变化，所以发现设备绝缘的缺陷较兆欧表测量更有效","测量泄露电流能发现电力设备绝缘贯通的集中缺陷，整体受潮或有贯通的部分受潮以及一些未完全贯通的集中性缺陷开裂､破损等"],"answer":1,"module":"单选题","explain":""},
+        {"title":"212. 互感器常规试验项目中不包括下列","options":["绝缘电阻测量","三相同期性测量","直流电阻测量","交流耐压试验"],"answer":1,"module":"单选题","explain":""},
+        {"title":"213. 关于电力电缆常规试验项目的下列表述中错误的是","options":["水分､机械杂质和游离碳测量","内点测量","水溶性炭和盐测量","电气强度试验"],"answer":2,"module":"单选题","explain":""},
+        {"title":"214. 高压断路器的常规试验项目中不包括下列","options":["三相同期性，最低分合闸动作电压试验","绝缘电阻､绕组直流电阻测量","极性和接线组别试验","交流耐压试验"],"answer":2,"module":"单选题","explain":""},
+        {"title":"215. 避雷器试验项目中不包含下列","options":["测量绝缘电阻","测量电容值","密封性检查","测量工频放点电压"],"answer":1,"module":"单选题","explain":""},
+        {"title":"216. 对于主要电器设备常规试验项目下列表述有误的是","options":["电力变压器绝缘试验包括绝缘电阻､吸收比､泄漏电流､介质损失角的正切值､绝缘油和交流耐压试验","互感器的试验项目分为绝缘试验和特性试验两大类","高压断路器试验有理化试验､电气特性试验，单相同期试验等机械方面试验","对电力电缆进行绝缘试验以及故障探测是保证其安全运行的重要措施｡试验项目有测量绝缘电阻､直流耐压试验和泄漏电流的测量，检查电缆相位，电缆故障探测"],"answer":2,"module":"单选题","explain":""},
+        {"title":"217. 固定卷扬启闭机起升机构主要由钢丝绳､滑轮组､制动器､联轴器､驱动传动机构和","options":["卷筒组","电动机","机架","限位开关"],"answer":0,"module":"单选题","explain":""},
+        {"title":"218. 固定卷扬启闭机起升机构主要由钢丝绳､卷筒组､滑轮组､","options":["电动机","制动器","安全保护装置","限位开关"],"answer":1,"module":"单选题","explain":""},
+        {"title":"219. 固定卷扬启闭机起升机构主要由钢丝绳､卷筒组､","options":["滑轮组","电动机","机架","限位开关"],"answer":0,"module":"单选题","explain":""},
+        {"title":"220. 滑轮组的作用是悬挂支承钢丝绳，并与钢丝绳一起组成一个机构，起","options":["减速和省力","加速和省力","减速和加力","加速和加力"],"answer":0,"module":"单选题","explain":""},
+        {"title":"221. 双联滑轮组必须有","options":["定滑轮","动滑轮","平衡轮","支架"],"answer":2,"module":"单选题","explain":""},
+        {"title":"222. 在实际工作中，闸门启闭机的钢丝绳主要承受以下三种力，下列属于钢丝绳受到的力是","options":["拉伸力","扭曲力","轴向压力","剪切力"],"answer":0,"module":"单选题","explain":""},
+        {"title":"223. 在实际工作中，闸门启闭机的钢丝绳主要承受以下三种力，下列属于钢丝绳受到的力是","options":["弯曲力","扭曲力","轴向压力","剪切力"],"answer":0,"module":"单选题","explain":""},
+        {"title":"224. 某启闭机的额定起重量为3000kN，采用双联滑轮组，其倍率为6，滑轮组效率为0.80，则钢丝绳的最大拉力为","options":["200 kN","312.5 kN","400 kN","625 kN"],"answer":1,"module":"单选题","explain":""},
+        {"title":"225. 螺杆启闭机螺旋机构按其螺纹间摩擦性质不同，可分为","options":["滑动摩擦","转动摩擦","平面摩擦","弧面摩擦"],"answer":0,"module":"单选题","explain":""},
+        {"title":"226. 螺杆启闭机起重螺杆和承重螺母的螺纹，普遍采用的螺纹类型为","options":["锯齿型","矩形","单线梯形","三角形"],"answer":2,"module":"单选题","explain":""},
+        {"title":"227. 螺杆启闭机起重螺杆承受扭矩的大小在启闭力和螺纹规格尺寸一定的情况下，只与螺纹间的","options":["滑动摩擦系数","滑动摩擦力","滚动摩擦系数","滚动摩擦力"],"answer":0,"module":"单选题","explain":""},
+        {"title":"228. 螺杆启闭机螺杆的损坏形式一般有：螺纹牙的磨损和折断､自锁能力不足而在重力作用下自行下落以及","options":["失去稳定弯曲变形","启门拉力过大断裂","与螺母的摩擦力过大而扭曲","严重锈蚀而折断"],"answer":0,"module":"单选题","explain":""},
+        {"title":"229. 在螺杆启闭机设计中，考虑到螺纹牙间的当量摩擦系数为","options":["0.02~0.04","0.05~0.07","0.08~0.1","0.12~0.15"],"answer":2,"module":"单选题","explain":""},
+        {"title":"230. 螺杆启闭机为了保证自锁性能，一般是考虑螺旋升角不大于","options":["1°~2°","2°~3°","3°10'~3°45'","4°~4°35'"],"answer":3,"module":"单选题","explain":""},
+        {"title":"231. 真空破坏阀断流方式适用于","options":["虹吸式","直管式","屈膝式","钟式"],"answer":0,"module":"单选题","explain":""},
+        {"title":"232. 下列属于泵站真空破坏阀断流方式特点的是","options":["结构简单","操作方便","体积小","造价低廉"],"answer":0,"module":"单选题","explain":""},
+        {"title":"233. 下列属于泵站真空破坏阀断流方式特点的是","options":["安全可靠","操作方便","流道断面简单","造价低廉"],"answer":0,"module":"单选题","explain":""},
+        {"title":"234. 下列属于泵站真空破坏阀断流方式特点的是","options":["体积小","流道出口损失大","流道流态好","造价低廉"],"answer":2,"module":"单选题","explain":""},
+        {"title":"235. 泵站采用拍门断流方式具有的特点之一是","options":["结构简单","水力损失小","停机时拍门撞击力小","检修方便"],"answer":0,"module":"单选题","explain":""},
+        {"title":"236. 泵站采用拍门断流方式具有的特点之一是","options":["水力损失小","安装方便","停机时拍门撞击力小","检修方便"],"answer":1,"module":"单选题","explain":""},
+        {"title":"237. 泵站采用拍门断流方式具有的特点之一是","options":["停机时拍门撞击力小","起动过程不稳定时间长","起动扬程较低","检修方便"],"answer":2,"module":"单选题","explain":""},
+        {"title":"238. 快速闸门断流的控制方式之一是","options":["卷扬机快速闸门断流","机械快速闸门断流","螺杆机快速闸门断流","移动启闭机快速闸门断流"],"answer":0,"module":"单选题","explain":""},
+        {"title":"239. 快速闸门断流控制方式具有的特点之一是","options":["出水阻力损失很小","进水阻力损失大","门在水中晃动明显","闭门无撞击力"],"answer":0,"module":"单选题","explain":""},
+        {"title":"240. 快速闸门断流控制方式具有的特点之一是","options":["设备费用低","进水阻力损失小","闸门在水中稳定","闭门无撞击力"],"answer":2,"module":"单选题","explain":""},
+        {"title":"241. 采用卷扬式快速闸门断流方式的优点是","options":["简单方便","可靠度高","体积小","重量轻"],"answer":0,"module":"单选题","explain":""},
+        {"title":"242. 采用卷扬式快速闸门断流方式的优点是","options":["重量轻","安全可靠","体积小","造价低"],"answer":1,"module":"单选题","explain":""},
+        {"title":"243. 卷扬式快速闸门断流的主要缺陷之一是","options":["安全性较差","维修困难","造价高","操作控制复杂"],"answer":0,"module":"单选题","explain":""},
+        {"title":"244. 液压快速闸门断流和卷扬机快速闸门断流比较，其特点是","options":["运行可靠","操作简便","维护方便","系统简单"],"answer":0,"module":"单选题","explain":""},
+        {"title":"245. 液压快速闸门断流和卷扬机快速闸门断流比较，其特点是","options":["减振效果好","操作简便","维护方便","系统简单"],"answer":0,"module":"单选题","explain":""},
+        {"title":"246. 液压快速闸门断流和卷扬机快速闸门断流比较，具有的特点是","options":["系统简单","造价较高","维修方便","系统简单"],"answer":1,"module":"单选题","explain":""},
+        {"title":"247. 拍门结构主要有下面几部分组成：门体､","options":["支座","拐臂","门座","密封装置"],"answer":2,"module":"单选题","explain":""},
+        {"title":"248. 下面属于拍门结构主要组成部分的是：","options":["止水橡皮与缓冲装置","铸铁拍门","铸钢拍门","合金拍门"],"answer":0,"module":"单选题","explain":""},
+        {"title":"249. 拍门一般都设置成倾斜的，以利止水｡小型拍门的安置角约为","options":["5°","10°","15°","20°"],"answer":1,"module":"单选题","explain":""},
+        {"title":"250. 中小型泵站通常为铸铁拍门，重量大，其开启角度一般在","options":["10°","20°","30°","40°"],"answer":2,"module":"单选题","explain":""},
+        {"title":"251. 对较重的铸铁拍门，可加设平衡锤把拍门吊起，平衡锤的重量约为拍门重量的","options":["30%","40%","55%","65%"],"answer":3,"module":"单选题","explain":""},
+        {"title":"252. 运行中对拍门要进行巡视检查，一般每班","options":["1~2 次","2~3 次","3~4 次","4~5 次"],"answer":1,"module":"单选题","explain":""},
+        {"title":"253. 闸门预埋件必须能将闸门所承受的载荷安全地传递到","options":["排架","工作桥","启闭机钢丝绳","混凝土"],"answer":3,"module":"单选题","explain":""},
+        {"title":"254. 各种金属埋件中对轨道的水上部位摩擦面可采用的保护方式是","options":["涂油脂","油漆防腐","喷锌防护","喷铝处理"],"answer":0,"module":"单选题","explain":""},
+        {"title":"255. 各种金属埋件除轨道水上部位摩擦面外，其余部位，宜采取的防护措施之一是","options":["调和漆防护","喷锌或喷铝处理","涂油脂防腐","包裹防护"],"answer":1,"module":"单选题","explain":""},
+        {"title":"256. 对闸门止水座板及底坎等预埋件，由于安装不牢受水流冲刷，泥沙磨损或锈蚀等原因发生","options":["松动","变形","折断","缺损脱落"],"answer":0,"module":"单选题","explain":""},
+        {"title":"257. 对闸门止水座板及底坎等预埋件，由于安装不牢受水流冲刷､泥沙磨损或锈蚀等原因发生","options":["缺损","变形","折断","脱落"],"answer":3,"module":"单选题","explain":""},
+        {"title":"258. 在对支承滑块的滑道主轨表面有缺陷的不锈钢进行喷镀或堆焊完毕后，应先根据需要用砂轮､零号砂布打磨后，再以油石蘸油研磨表面，以达到设计要求的","options":["平整度","耐磨度","粗糙度","外形尺寸"],"answer":2,"module":"单选题","explain":""},
+        {"title":"259. 更换新止水时，应用原止水压板的孔位在新止水橡皮上划线冲孔，孔径应比螺栓直径","options":["小1mm","小2 mm","大1mm","大2 mm"],"answer":0,"module":"单选题","explain":""},
+        {"title":"260. 止水橡皮更新或修理后，要求止水表面平面度不超过","options":["1 mm","2mm","5 mm","1cm"],"answer":1,"module":"单选题","explain":""},
+        {"title":"261. 止水橡皮更新或修理后，要求止水橡皮的压缩量应保持","options":["1 mm 左右","2~4mm","5 mm 左右","6~10cm"],"answer":1,"module":"单选题","explain":""},
+        {"title":"262. 磁粉探伤方法随着缺陷埋藏深度的增加，其灵敏度迅速降低，一般认为距表面约","options":["1 mm","3 mm","5mm","10 mm"],"answer":2,"module":"单选题","explain":""},
+        {"title":"263. 着色检验的灵敏度较荧光检验为高，其灵敏度一般为","options":["0.001mm","0.01mm","0.1mm","1mm"],"answer":1,"module":"单选题","explain":""},
+        {"title":"264. 渗透探伤又分为","options":["磁粉渗透探伤","荧光渗透探伤","射线渗透探伤","超声波渗透探伤"],"answer":1,"module":"单选题","explain":""},
+        {"title":"265. 下列不仅可用于检查磁性材料，还能检查有色金属和非金属等材料的方法是","options":["渗透探伤","磁粉探伤","磁粉检验","荧光检验"],"answer":0,"module":"单选题","explain":""},
+        {"title":"266. 射线探伤法采用x 射线能检查出大小为穿透厚度的","options":["1%~2%","3%","4%~5%","10%"],"answer":0,"module":"单选题","explain":""},
+        {"title":"267. 射线探伤法采用γ 射线能检查出大小为穿透厚度的","options":["2%","3%","4%","10%"],"answer":1,"module":"单选题","explain":""},
+        {"title":"268. 螺杆启闭机螺杆压弯的主要原因之一是","options":["过载保护没有调节好","闸门重量过大","水位差过大","行程开关上限位未调节好"],"answer":0,"module":"单选题","explain":""},
+        {"title":"269. 螺杆启闭机螺杆压弯的主要原因之一是","options":["闸门重量过大","闸门摩阻过大","水位差过大","行程开关上限位未调节好"],"answer":1,"module":"单选题","explain":""},
+        {"title":"270. 由于闸门自重的作用，螺杆式启闭机的启门力通常大于闭门力，电动机的容量是按","options":["启门力","闭门力","闸门重量","实际荷载"],"answer":0,"module":"单选题","explain":""},
+        {"title":"271. 为防止螺杆弯曲，电动和手电两用的螺杆启闭机均应装设过载保护装置，常用的闭门过载保护装置有","options":["牙嵌式安全联轴器","钢球式安全联轴器","液压式安全联轴器","磁粉式安全联轴器"],"answer":0,"module":"单选题","explain":""},
+        {"title":"272. 为防止螺杆弯曲，电动和手电两用的螺杆启闭机均应装设过载保护装置，常用的闭门过载保护装置有","options":["磁粉式安全联轴器","钢球式安全联轴器","液压式安全联轴器","超越摩擦片式安全联轴器"],"answer":3,"module":"单选题","explain":""},
+        {"title":"273. 超越摩擦片式安全联轴器由两部分组成：一部分是超越离合器，也叫定向离合器，另一部分是","options":["片式摩擦联轴器","钢片式摩擦联轴器","齿片式摩擦联轴器","滑动式摩擦联轴器"],"answer":0,"module":"单选题","explain":""},
+        {"title":"274. 拦污栅的跨度(栅墩间距)不宜过大，一般为","options":["1~2m","3~5m","6~7 m","6 m 内"],"answer":1,"module":"单选题","explain":""},
+        {"title":"275. 对拦污栅要求栅体和拦污桥能够承受被杂草污堵塞情况下栅前､栅后水位差为","options":["小于1.0m","1.0~2.0m","大于2 m","3~4 m"],"answer":1,"module":"单选题","explain":""},
+        {"title":"276. 拦污栅由钢制栅叶结构和","options":["支座","滑道","预埋件","底坎"],"answer":2,"module":"单选题","explain":""},
+        {"title":"277. 栅片间净距S 一般随水泵的性能不同而异，对直径D 为3m 的混流泵，则栅片间净距可取为","options":["5cm","10cm","15cm","20cm"],"answer":1,"module":"单选题","explain":""},
+        {"title":"278. 栅片间净距S 一般随水泵的性能不同而异，对直径D 为2m 的混流泵，则栅片间净距可取为","options":["4cm","10cm","12cm","20cm"],"answer":1,"module":"单选题","explain":""},
+        {"title":"279. 通过拦污栅的流速，采用机械清污或提栅清污时，可取","options":["0.1~0.2m/s","0.3~0.5m/s","0.6~1.0m/s","1.0m/s 以上"],"answer":2,"module":"单选题","explain":""},
+        {"title":"280. 被拦污栅拦截的污物如果不及时清除，则会大幅度地增加","options":["水泵扬程","水泵流量","效率","转速"],"answer":0,"module":"单选题","explain":""},
+        {"title":"281. 被拦污栅拦截的污物如果不及时清除，则会大幅度地增加","options":["轴功率","水泵流量","效率","转速"],"answer":0,"module":"单选题","explain":""},
+        {"title":"282. 被拦污栅拦截的污物如果不及时清除，则会大幅度地减小","options":["用电量","水泵扬程","效率","转速"],"answer":2,"module":"单选题","explain":""},
+        {"title":"283. 刮污装置变形的主要原因是","options":["齿耙清污量大","刮污板挂草太多","安全销未剪断","清污机动力过大"],"answer":1,"module":"单选题","explain":""},
+        {"title":"284. 齿耙钢管弯曲变形的原因这一是","options":["通过刮污板时阻力大","安全保护装置未起作用","链条强度大","清污机动力过大"],"answer":0,"module":"单选题","explain":""},
+        {"title":"285. 齿耙钢管弯曲变形的原因这一是","options":["清污机动力过大","安全保护装置未起作用","链条强度大","钢管壁厚偏薄"],"answer":3,"module":"单选题","explain":""},
+        {"title":"286. 存储设备(Memory)是计算机内各硬件和","options":["打印机","显示器","中央处理器(CPU)","硬盘"],"answer":2,"module":"单选题","explain":""},
+        {"title":"287. 计算机常用的输出设备有:","options":["鼠标","硬盘","中央处理器(CPU)","显示器"],"answer":3,"module":"单选题","explain":""},
+        {"title":"288. 下列哪个软件不是操作系统软件的名字","options":["WindowsXP","WINDOWS2008","CAD","Linux"],"answer":2,"module":"单选题","explain":""},
+        {"title":"289. 人们针对某一需要而为计算机编制的指令序列称为程序连同有关的数据和说明资料称为软件｡简单地讲，软件就是","options":["注释","说明","字符","程序"],"answer":3,"module":"单选题","explain":""},
+        {"title":"290. 以下不属于应用软件的是","options":["网卡驱动","接口程序","WINDOWS98","编解码程序"],"answer":2,"module":"单选题","explain":""},
+        {"title":"291. 广域网也称远程网缩写是","options":["WAN","Internet","LAN","www"],"answer":0,"module":"单选题","explain":""},
+        {"title":"292. 局域网缩写是","options":["万维网","Internet","ARPANET 网","LAN"],"answer":3,"module":"单选题","explain":""},
+        {"title":"293. 国际互联网(Internet)，也称:万维网｡它在英语中的全称是","options":["Wide World Web","World Wide Web","Web World Wide","World Web Wide"],"answer":1,"module":"单选题","explain":""},
+        {"title":"294. 有一种设备在计算机发送数据时将数字信号转换为模拟信号，在计算机接收数据时将模拟信号转换为数字信号，这种设备就是","options":["网卡","交换机","无线路由","调制解调器(MODEM)"],"answer":3,"module":"单选题","explain":""},
+        {"title":"295. 在上网时输入的网址，是通过","options":["DNS","网关","域名解析系统","防火墙"],"answer":2,"module":"单选题","explain":""},
+        {"title":"296. 泵站计算机监控系统一般采用分层分布式信息结构｡根据泵站的实际情况和系统的具体要求，从下层到上层可以分为4 级结构，分别为","options":["泵站管理层､决策管理层､现场级控制层､监督控制层","监督控制层､泵站管理层､决策管理层､现场级控制层","泵站管理层､现场级控制层､监督控制层､决策管理层","现场级控制层､监督控制层､泵站管理层､决策管理层"],"answer":3,"module":"单选题","explain":""},
+        {"title":"297. 信息检索系统包括","options":["目录检索系统､全文检索系统","辅助设计系统､目录检索系统､全文检索系统","决策支持系统､辅助设计系统､目录检索系统","全文检索系统､知识层业务处理系统"],"answer":0,"module":"单选题","explain":""},
+        {"title":"298. 摄像装置可以固定，也可以采用","options":["聚焦控制","转动角度控制","云台控制","485 控制"],"answer":2,"module":"单选题","explain":""},
+        {"title":"299. 视频系统中监控中心部分一般采用","options":["Client/Server(简称C/S)结构","树型结构","星形结构","Brower/Server(简称B/S)结构"],"answer":3,"module":"单选题","explain":""},
+        {"title":"300. 当几台发电机并列运行时，通过","options":["励磁控制器","直流系统","监控系统","保护装置"],"answer":0,"module":"单选题","explain":""},
+        {"title":"301. 同步发电机的整个工作过程的第二阶段，是指同步发电机并网之后｡此时励磁控制系统是通过调节励磁电流来调整发电机向电网输出的","options":["无功电能","有功功率","无功功率","有功电能"],"answer":2,"module":"单选题","explain":""},
+        {"title":"302. 励磁控制系统的控制规律最终都归结为","options":["积分运算","微分运算","比例运算","PID 运算"],"answer":3,"module":"单选题","explain":""},
+        {"title":"303. 泵站调速的主要硬件设备是","options":["进出水闸门装置","调速器","叶片装置","励磁控制器"],"answer":1,"module":"单选题","explain":""},
+        {"title":"304. 微机调速系统的实时运行控制软件系统，从控制方式上可分","options":["中央控制室常规控制方式或中央控制室上位机控制方式","中央控制室常规控制方式","中央控制室上位机控制方式","中央控制室触摸屏控制方式"],"answer":0,"module":"单选题","explain":""},
+        {"title":"305. 智能化调试维护软件系统包括","options":["智能诊断","维护诊断和智能化调试","维护调试","智能化调试"],"answer":1,"module":"单选题","explain":""},
+        {"title":"306. 当计算机失电，出现有电源不能启动时，如果是因为硬盘损坏或Windows 系统损坏，这时如果重装系统正常计算机运行正常，这说明是","options":["操作系统","硬盘","操作系统和硬盘","操作系统或硬盘"],"answer":3,"module":"单选题","explain":""},
+        {"title":"307. 当计算机失电，出现有电源不能启动时，如果是因为硬盘损坏或Windows 系统损坏，这时如果不能重装系统，说明","options":["操作系统","硬盘","操作系统和硬盘","操作系统或硬盘"],"answer":1,"module":"单选题","explain":""},
+        {"title":"308. 当计算机失电､启动后死机等故障，为此，可以通过一种最简单的方法解决:按下电源按钮后，计算机进入启动画面时，按键盘的","options":["CTRL+F8","F1","F8","F1"],"answer":2,"module":"单选题","explain":""},
+        {"title":"309. 采用“备份还原工具软件”或“","options":["DiskTool 磁盘分区工具","ghost 工具","office 工具","CAD"],"answer":1,"module":"单选题","explain":""},
+        {"title":"310. 微机保护装置有电源不能启动､启动后死机，首先更换电源模块看能不能解决，如能解决启动､启动后死机的问题，则说明","options":["DSP 模块","液晶模块","电源模块","采样模块"],"answer":2,"module":"单选题","explain":""},
+        {"title":"311. 现在的PLC 模块大多数是","options":["直流24V","交流90V","高压","低压"],"answer":0,"module":"单选题","explain":""},
+        {"title":"312. LCU 屏的PLC 有电源不能启动､启动后死机，如果开关电源输出电压正常，则查看PLC 的CPU 上的指示灯哪个等亮了，如果是RUN 指示灯灯不亮，","options":["BAT 指示灯","ERH 指示灯","IO 指示灯","FAULT 指示"],"answer":1,"module":"单选题","explain":""},
+        {"title":"313. LCU 屏的PLC 有电源不能启动､启动后死机，如果开关电源输出电压正常，则查看PLC 的CPU 上的指示灯，如果是RUN 指示灯灯不亮，","options":["BAT 指示灯","ERH 指示灯","IO 指示灯","FAULT 指示"],"answer":3,"module":"单选题","explain":""},
+        {"title":"314. 监控系统的检查与日常维护，下列","options":["如软件修改或重新设置，应将修改中设置前后的软件分别备份，并做好修改记录;","监视系统应正常，调节控制可靠，图像清晰","操作人员可以随意修改软件画面､设置相关参数","仪表､信道及电源的过电压保护应可靠､有效"],"answer":2,"module":"单选题","explain":""},
+        {"title":"315. 要求在授权的条件下能够对","options":["报警类型","报警信息","报警发生时间","报警界限值"],"answer":3,"module":"单选题","explain":""},
+        {"title":"316. 系统能够对事故发生前给出报警提示，对过去所发生的事件进行追忆查询，系统维护人员和管理人员根据过去发生的事件信息结合历史数据库来分析事故，这一功能为","options":["系统运行日志记录查询","事故追忆及故障诊断","事件报警管理","报警查询"],"answer":1,"module":"单选题","explain":""},
+        {"title":"317. 系统能够根据设备情况和用户的需水量等要求计算出系统机组的最佳运行方案，提出运行建议，进而实现梯级泵站及泵站群的","options":["整体调度","模型调度","整体优化调度","集中调度"],"answer":2,"module":"单选题","explain":""},
+        {"title":"318. 当计算机不能正常启动，遇到此问题的处理方法是听声音，电脑出现启动故障时都会发出不同的鸣叫声提示故障的部位，","options":["1 长1 短","1 长9 短","4 短","1 长8 短"],"answer":3,"module":"单选题","explain":""},
+        {"title":"319. 当计算机不能正常启动，遇到此问题的处理方法是听声音，电脑出现启动故障时都会发出不同的鸣叫声提示故障的部位，在AMI BIOS 系统中，","options":["2 长1 短","4 短","6 短","响声不停"],"answer":2,"module":"单选题","explain":""},
+        {"title":"1. 语言规范是","options":["爱岗敬业","办事公道","文明礼貌","诚实守信"],"answer":2,"module":"单选题","explain":""},
+        {"title":"2. 提高职业技能是","options":["文明礼貌","爱岗敬业","勤俭节约","诚实守信"],"answer":1,"module":"单选题","explain":""},
+        {"title":"3. 社会主义职业道德的核心是","options":["集体主义","共产主义","全心全意依靠工人阶级","全心全意为人民服务"],"answer":3,"module":"单选题","explain":""},
+        {"title":"4. 与法律相比，道德在调节人与人、个人与社会以及人与自然之间的各种关系时，它的","options":["时效性差","作用力弱","操作性强","适用范围大"],"answer":3,"module":"单选题","explain":""},
+        {"title":"5. 水利行业精神是：“","options":["创新","献身","奉献","超越"],"answer":1,"module":"单选题","explain":""},
+        {"title":"6. 与法律相比，道德","options":["产生的时间晚","适用范围更广","内容上显得十分笼统","评价标准难以确定。"],"answer":1,"module":"单选题","explain":""},
+        {"title":"7. 从一批相同的零件中任取一件，不经修配就能装配使用，并能保证使用性能要求的性质的称为","options":["公差","配合","互换性","尺寸偏差"],"answer":2,"module":"单选题","explain":""},
+        {"title":"8. 下列关于尺寸公差的公式错误的是","options":["上偏差＝最大极限尺寸-基本尺寸","下偏差＝最小极限尺寸-极限尺寸","公差=最大极限尺寸－最小极限尺寸","公差=上偏差－下偏差"],"answer":1,"module":"单选题","explain":""},
+        {"title":"9. ø 80h8表示圆柱零件，基本尺寸为80mm","options":["基本偏差为H的8级孔","上偏差为8mm","偏差为8mm","基本偏差代号h，公差等级为8级的轴"],"answer":0,"module":"单选题","explain":""},
+        {"title":"10. 倾斜度公差属于位置公差中的","options":["定位","定向","位置","跳动"],"answer":1,"module":"单选题","explain":""},
+        {"title":"11. 在满足使用要求的前提下，应尽量选用","options":["常用","较小","相同","较大"],"answer":1,"module":"单选题","explain":""},
+        {"title":"12. 水利工程图的分类中不包括","options":["规划图","枢纽布置图","详图","施工图"],"answer":2,"module":"单选题","explain":""},
+        {"title":"13. 枢纽布置图的特点是","options":["可以画在地形图上","应画在地形图上","不能只画出建筑物的主要轮廓","重力坝枢纽布置图可不画在地形图上"],"answer":1,"module":"单选题","explain":""},
+        {"title":"14. 泵站运行管理人员应按规定经培训和","options":["各类院校毕业","上级同意","领导审核","考核"],"answer":3,"module":"单选题","explain":""},
+        {"title":"15. 技术方案编写的依据是","options":["《泵站设计规范》","《泵站更新改造技术规范》","《泵站技术管理规程》","《大型泵站设备设施运行规程》"],"answer":2,"module":"单选题","explain":""},
+        {"title":"16. 泵站效率应根据泵型、泵站设计扬程或","options":["平均净扬程","最大扬程","最小扬程","泵站功率"],"answer":0,"module":"单选题","explain":""},
+        {"title":"17. 润滑和冷却用油应符合","options":["冷却油厂家","润滑油厂家","水泵生产厂家","泵站领导"],"answer":2,"module":"单选题","explain":""},
+        {"title":"18. 一台水泵机组是由具有一定质量的多个零部件组合而成的弹性组合体，它旋转时所产生的旋转力","options":["不可能绝对平衡","保持平衡","应绝对平衡","不能有波动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"19. 电接点双金属温度计应用于生产现场对温度需自动控制和","options":["校核","调节","报警","显示"],"answer":2,"module":"单选题","explain":""},
+        {"title":"20. 液位计根据","options":["机械原理","电力原理","气压原理","浮力原理"],"answer":3,"module":"单选题","explain":""},
+        {"title":"21. 启动过程引起的振动对于采用拍门的平直管式流道就是一重阻尼式的","options":["水锤振动","空气的排除过程","汽蚀振动","机械振动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"22. 运行期间应定期巡视检查技术供水水压及","options":["示流信号","渗漏信号","溢流信号","损失信号"],"answer":0,"module":"单选题","explain":""},
+        {"title":"23. 恒流直流电是指","options":["大小和方向","电流和电压","电流和电阻","电压和电阻"],"answer":0,"module":"单选题","explain":""},
+        {"title":"24. 将大电流变换为小电流的电气设备是","options":["电力变压器","电压互感器","电流互感器","行灯变压器"],"answer":2,"module":"单选题","explain":""},
+        {"title":"25. 把一通电直导线绕成一个螺线管，则其电流","options":["变大","不变","变小","无法判断"],"answer":1,"module":"单选题","explain":""},
+        {"title":"26. 更换的熔体应与原来使用的熔体的","options":["额定电流","额定电压","形状","大小"],"answer":0,"module":"单选题","explain":""},
+        {"title":"27. 是使用高压验电器时，应戴好","options":["绝缘手套","塑料手套","纱手套","布手套"],"answer":0,"module":"单选题","explain":""},
+        {"title":"28. 楞次定律是研究","options":["电流","电压","导体运动","感生电动势"],"answer":3,"module":"单选题","explain":""},
+        {"title":"29. 泵机停止运行时，应听","options":["集水池的水流声","压力窨井的水流声","闸阀关闭的响声","拍门关闭的响声"],"answer":3,"module":"单选题","explain":""},
+        {"title":"30. 电容器电容的大小与","options":["电压","电流","电介质","频率"],"answer":2,"module":"单选题","explain":""},
+        {"title":"31. 照明电路中出现","options":["开关断线","满载","开关熔焊","负载两端碰线"],"answer":3,"module":"单选题","explain":""},
+        {"title":"32. 除液压启闭机外，其它各类启闭机均应装设","options":["齿轮机构","蜗杆装置","螺杆装置","制动装置"],"answer":3,"module":"单选题","explain":""},
+        {"title":"33. 清污机设有机械过载保护和","options":["监控装置","电气过载保护","扩力装置","安全保护装置"],"answer":1,"module":"单选题","explain":""},
+        {"title":"34. 移动式启闭机的行走机构应装设","options":["缓冲器","保持器","平衡器","减速器"],"answer":0,"module":"单选题","explain":""},
+        {"title":"35. 螺杆启闭机常用的闭门过载保护装置有","options":["套筒式连轴器","刚性联轴器","牙嵌式安全联轴器","安全销"],"answer":2,"module":"单选题","explain":""},
+        {"title":"36. 计算机监控系统的软件集合中，","options":["监控软件","操作系统软件","数据库软件","网络通信软件"],"answer":1,"module":"单选题","explain":""},
+        {"title":"37. 泵站计算机监控系统远程调度端与信息中心距离较远时，监控信息可利用","options":["双绞线","同轴电缆","光纤","卫星信道"],"answer":2,"module":"单选题","explain":""},
+        {"title":"38. PLC是（programmable logica controller）缩写，意为","options":["现地控制单元","可编程控制器","可编程存储器","主控单元"],"answer":1,"module":"单选题","explain":""},
+        {"title":"39. 计算机监控系统的实时性反映在系统的响应时间上，数据的采集周期一般在","options":["1s","2s","5s","10s"],"answer":0,"module":"单选题","explain":""},
+        {"title":"40. 计算机监控系统安全性不包括","options":["操作安全","通信安全","人身安全","软硬件安全"],"answer":2,"module":"单选题","explain":""},
+        {"title":"41. 泵站计算机监控系统的现场设备可根据具体情况采用","options":["树形组网","环形组网","星型组网","总线组网"],"answer":3,"module":"单选题","explain":""},
+        {"title":"42. 对于模拟信号传输来讲，进行较远距离传输时，通常涉及到以下技术或设备：调制、解调","options":["MODEM","MPEG","CABLE","FDDI"],"answer":0,"module":"单选题","explain":""},
+        {"title":"43. 常用的液位传感器或变送器包括浮球式、","options":["静压式","气压式","差压式","浮板式"],"answer":0,"module":"单选题","explain":""},
+        {"title":"44. 因特网接入技术包括","options":["拨号接入","评价","方案","成本"],"answer":2,"module":"单选题","explain":""},
+        {"title":"45. 计算机监控系统通信接口通常采用","options":["ADSL","RS485","RJ45","ATM"],"answer":1,"module":"单选题","explain":""},
+        {"title":"46. 培训计划必须满足","options":["组织","上级部门","社会","群众"],"answer":0,"module":"单选题","explain":""},
+        {"title":"47. 质量改进的原理：质量改进是通过","options":["改造设备","改造技术","节约能源","改进过程"],"answer":3,"module":"单选题","explain":""},
+        {"title":"48. 标准体制主要包括标准分级和","options":["标准类别","标准性质","标准层次","标准规范"],"answer":1,"module":"单选题","explain":""},
+        {"title":"49. 编写培训讲义必须认真研究本职业","options":["《国家技术标准》","《国家职业标准》","行业标准","行业规范"],"answer":1,"module":"单选题","explain":""},
+        {"title":"50. 技术档案管理应符合","options":["行业管理","上级部门","泵站管理","国家档案管理"],"answer":3,"module":"单选题","explain":""},
+        {"title":"51. 泵站机电设备通常包括：","options":["主机组","水泵","电动机","柴油机"],"answer":0,"module":"单选题","explain":""},
+        {"title":"52. 电动机选择正确与否将直接影响泵站","options":["转速","经济效益","装置效率","扬程"],"answer":2,"module":"单选题","explain":""},
+        {"title":"53. 加装前置导轮可有效地改善泵的","options":["出水量","空蚀性能","工作效率","装置效率"],"answer":1,"module":"单选题","explain":""},
+        {"title":"54. 机电设备及金属结构的更新改造，应与继续保留使用的设备、设施在","options":["大小","形状","结构尺寸","功率"],"answer":2,"module":"单选题","explain":""},
+        {"title":"55. 更新改造中主水泵的","options":["效益","效率","性能参数","泵型"],"answer":3,"module":"单选题","explain":""},
+        {"title":"56. 主电动机的容量，应按主水泵在运行期间出现的","options":["最小轴功率","最大轴功率","平均轴功率","额定轴功率"],"answer":1,"module":"单选题","explain":""},
+        {"title":"57. 爱岗敬业是社会主义国家对每个从业人员的","options":["最高要求","起码要求","全面要求","局部要求"],"answer":1,"module":"单选题","explain":""},
+        {"title":"58. 下列说法中，你认为错误的是","options":["诚实守信是市场经济法则","诚实守信是企业的无形资产","诚实守信是为人之本","奉行诚实守信的原则在市场经济中必定难以立足"],"answer":3,"module":"单选题","explain":""},
+        {"title":"59. 社会主义的职业差别是","options":["分工不同","社会地位不同","经济地位不同","社会荣誉不同"],"answer":0,"module":"单选题","explain":""},
+        {"title":"60. 职业道德是从事一定职业的人们，在工作或劳动中，应遵循的与其","options":["思想活动","经济活动","政治活动","职业活动"],"answer":3,"module":"单选题","explain":""},
+        {"title":"61. 水利职业道德的基础和核心是：","options":["注重质量","崇尚科学","爱岗敬业","实事求是"],"answer":2,"module":"单选题","explain":""},
+        {"title":"62. 关于道德与法律，正确的说法是","options":["在法律健全完善的社会，不需要道德","由于道德不具备法律那样的强制性，所以道德的社会功用不如法律","在人类历史上，道德与法律同时产生","在一定条件下，道德与法律能够相互作用、相互转化"],"answer":3,"module":"单选题","explain":""},
+        {"title":"63. 为了保证零件具有互换性，必须对零件的尺寸规定一个允许的变动量，即","options":["尺寸公差","标准公差","基本偏差","极限偏差"],"answer":0,"module":"单选题","explain":""},
+        {"title":"64. 基准制是规定孔与轴相配合时，以其中一个作为基准件，它的","options":["标准公差","基本偏差","极限偏差","尺寸公差"],"answer":1,"module":"单选题","explain":""},
+        {"title":"65. 与标准件相配合时应选用","options":["基孔制","基轴制","以标准件为准的基准制","以孔为基准的基孔制"],"answer":2,"module":"单选题","explain":""},
+        {"title":"66. 极限与配合在装配图上的标注形式中，分子为","options":["孔的公差带代号","轴的公差带代号","孔的实际尺寸","轴的实际尺寸"],"answer":0,"module":"单选题","explain":""},
+        {"title":"67. 图样中基准代号不管处于什么方向，框内字母应","options":["垂直","倾斜","水平","任意"],"answer":2,"module":"单选题","explain":""},
+        {"title":"68. 零件上有配合要求或有相对运动的表面，粗糙度参数值","options":["要较大","应选较小值","不确定","不受影响"],"answer":1,"module":"单选题","explain":""},
+        {"title":"69. 勘测图样常用专业图例允许在一个图上用","options":["1种","2种","3种","4种"],"answer":1,"module":"单选题","explain":""},
+        {"title":"70. 用来表示水利枢纽中各建筑物的形状、大小、结构与构造及组成材料等内容的图样，成为","options":["枢纽图","平面布置图","施工详图","剖面图"],"answer":2,"module":"单选题","explain":""},
+        {"title":"71. 泵站运行管理人员应按规定经","options":["大学毕业","上级同意","领导审核","培训"],"answer":3,"module":"单选题","explain":""},
+        {"title":"72. 离心泵运行前宜","options":["盘车检查","推车检查","摇动检查","推动检查"],"answer":0,"module":"单选题","explain":""},
+        {"title":"73. 泵站机组用油大致可分为润滑油和","options":["机械油","绝缘油","润滑脂","润滑剂"],"answer":1,"module":"单选题","explain":""},
+        {"title":"74. 一台水泵机组是由具有一定质量的多个零部件组合而成的","options":["刚性部件","运动单元","刚性组合体","弹性组合体"],"answer":3,"module":"单选题","explain":""},
+        {"title":"75. 液位计根据浮力原理和","options":["机械原理","电力原理","气压原理","磁性耦合"],"answer":3,"module":"单选题","explain":""},
+        {"title":"76. 启动过程引起的振动对于虹吸式流道而言，是机组启动时，虹吸形成的过程，也就是残存在流道内的","options":["水锤振动","空气的排除过程","汽蚀振动","机械振动"],"answer":1,"module":"单选题","explain":""},
+        {"title":"77. 运行期间应定期巡视检查","options":["技术供水水压","渗漏信号","溢流信号","损失信号"],"answer":0,"module":"单选题","explain":""},
+        {"title":"78. 在闭合电路中，当电源内阻增大时，电源两端的电压将","options":["升高","降低","不变","不确定"],"answer":1,"module":"单选题","explain":""},
+        {"title":"79. 在泵站中，L1，L2，L3三相交流电习惯用","options":["黄、绿、红","红、绿、黄","红、黄、绿","黄、红、绿"],"answer":0,"module":"单选题","explain":""},
+        {"title":"80. 在万用表的标度盘上标有“AC”的标度尺为测量","options":["直流电压","直流电流","直流","交流"],"answer":3,"module":"单选题","explain":""},
+        {"title":"81. 楞次定律是研究","options":["电流","电压","导体运动","感生电动势"],"answer":3,"module":"单选题","explain":""},
+        {"title":"82. 照明电路中出现","options":["开关断线","满载","开关熔焊","负载两端碰线"],"answer":3,"module":"单选题","explain":""},
+        {"title":"83. 当运行中的电动机在转速突然下降同时迅速发热时，首先应","options":["切断电源","检查故障","汇报领导","继续使用"],"answer":0,"module":"单选题","explain":""},
+        {"title":"84. 电气设备在低于额定功率下的工作状态叫","options":["轻载","满载","过载","超载"],"answer":0,"module":"单选题","explain":""},
+        {"title":"85. 效率是指水泵的有效功率与","options":["轴功率","输出功率","扬程","转速"],"answer":0,"module":"单选题","explain":""},
+        {"title":"86. 清污机设有","options":["监控装置","机械过载保护","扩力装置","安全保护装置"],"answer":1,"module":"单选题","explain":""},
+        {"title":"87. 移动式启闭机的行走机构应装设缓冲器，室外作业的移动式启闭机应装设","options":["保持器","夹轨器","平衡器","减速器"],"answer":1,"module":"单选题","explain":""},
+        {"title":"88. 螺杆启闭机常用的闭门过载保护装置有牙嵌式安全联轴器和","options":["套筒式","凸缘式","超越摩擦片式","安全销"],"answer":2,"module":"单选题","explain":""},
+        {"title":"89. 泵站计算机监控系统的软件集合中，","options":["监控软件","操作系统软件","数据库软件","网络通信软件"],"answer":1,"module":"单选题","explain":""},
+        {"title":"90. 泵站计算机监控系统远程调度端与信息中心距离较远时，监控信息可利用","options":["双绞线","光纤","同轴电缆","卫星信道"],"answer":1,"module":"单选题","explain":""},
+        {"title":"91. 为了防止在突然失电的情况下引起监控软件某些文件破坏，一般需要对计算机","options":["从供电部门引出专用电线","配备稳压器","配备UPS","配备发电机组"],"answer":2,"module":"单选题","explain":""},
+        {"title":"92. 监控过程中，数据处理采用的是","options":["问题驱动","故障驱动","设备驱动","事件驱动"],"answer":3,"module":"单选题","explain":""},
+        {"title":"93. PLC性能主要取决于CPU速度和","options":["内存容量","I/O数量","软件容量","体积大小"],"answer":0,"module":"单选题","explain":""},
+        {"title":"94. 目前，计算机监控系统软件多采用","options":["B2B","B/S","C/S","B2C"],"answer":2,"module":"单选题","explain":""},
+        {"title":"95. 模拟信号如语音信号要在数字线路上传输，必须将语音信号转换成数字信号，其转换过程需经历3 个过程：","options":["压缩","采样","A/D","调制"],"answer":1,"module":"单选题","explain":""},
+        {"title":"96. 监控系统可靠性体现在平均无故障间隔时间和","options":["平均维修时间","CPU平均负荷率","可利用率","可维护性"],"answer":0,"module":"单选题","explain":""},
+        {"title":"97. 计算机监控系统的实时性反映在系统的响应时间上，数据的控制响应时间一般在","options":["10s","5s","2s","1s"],"answer":3,"module":"单选题","explain":""},
+        {"title":"98. 在信号传输过程中，解调是将","options":["对传输信号进行采样","传输的模拟信号变换成数字信号","对传输信号进行量化","传输的数字信号变换为模拟信号"],"answer":1,"module":"单选题","explain":""},
+        {"title":"99. 培训计划必须满足组织及","options":["员工","上级部门","社会","群众"],"answer":0,"module":"单选题","explain":""},
+        {"title":"100. 全面质量管理的特点：","options":["全员","全体","全面","全厂"],"answer":0,"module":"单选题","explain":""},
+        {"title":"101. 所谓标准分级就是根据标准适用范围的不同，将其划分为若干不同的","options":["类别","性质","层次","规范"],"answer":2,"module":"单选题","explain":""},
+        {"title":"102. 《中华人民共和国标准化法》规定，我国标准分为四级，即国家标准、","options":["县市标准","地市标准","省市标准","行业标准"],"answer":3,"module":"单选题","explain":""},
+        {"title":"103. 编写培训讲义必须认真研究本职业《国家职业标准》和","options":["《国家技术标准》","《国家职业资格培训教程》","行业标准","行业规范"],"answer":1,"module":"单选题","explain":""},
+        {"title":"104. 档案信息管理应符合的要求包括：定期对技术文档进行","options":["清理、整洁","整理、归档","编码、排序","替换、销毁"],"answer":1,"module":"单选题","explain":""},
+        {"title":"105. 《泵站安全鉴定规程》规定：二类水泵技术状态基本完好，满足泵站运行要求，水泵只需","options":["整体更换","局部修复","全面修复","整体修复"],"answer":1,"module":"单选题","explain":""},
+        {"title":"106. 液压马达可实现连续的","options":["旋转运动","往复直线运动","往复摆动运动","上下运动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"107. 机电设备及金属结构的更新改造，应与继续保留使用的设备、设施在结构尺寸和","options":["大小","形状","性能参数","功率"],"answer":2,"module":"单选题","explain":""},
+        {"title":"108. 泵站改造所采用的新泵型应是技术参数先进、经济指标合理、并通过了","options":["县市级以上","省部级以上","专家组","地市级以上"],"answer":1,"module":"单选题","explain":""},
+        {"title":"109. 主电动机的容量，应按主水泵在","options":["模拟试验时","运行期间","设计时","试验期间"],"answer":1,"module":"单选题","explain":""},
+        {"title":"110. 一个人的社会地位、荣誉，从根本上取决于","options":["从业者所获得的报酬","自己的职业","从业者对社会的贡献","自己的职务"],"answer":2,"module":"单选题","explain":""},
+        {"title":"111. 要做到办事公道，应站在","options":["平衡","平均","公正","协调"],"answer":2,"module":"单选题","explain":""},
+        {"title":"112. 爱岗敬业是社会主义国家对每个从业人员的","options":["最高要求","起码要求","全面要求","局部要求"],"answer":1,"module":"单选题","explain":""},
+        {"title":"113. 社会主义职业道德的基本原则是","options":["共产主义","集团主义","集体主义","全心全意为人民服务"],"answer":2,"module":"单选题","explain":""},
+        {"title":"114. 关于职业道德，正确的说法是","options":["职业道德有助于增强企业凝聚力，但无助于促进企业技术进步","职业道德有助于提高劳动生产率，但无助于降低生产成本","职业道德有利于提高员工职业技能，增强企业竞争力","职业道德只是有助于提高产品质量，但无助于提高企业信誉和形象。"],"answer":2,"module":"单选题","explain":""},
+        {"title":"115. 在上偏差、下偏差中接近零线的那个偏差，称","options":["尺寸公差","标准公差","基本偏差","极限偏差"],"answer":2,"module":"单选题","explain":""},
+        {"title":"116. 机器中轴和孔的基本尺寸相同，轴的公差带在孔的公差带之上，这种配合称为","options":["过盈配合","间隙配合","过渡配合","互换性"],"answer":0,"module":"单选题","explain":""},
+        {"title":"117. 在公差等级高于IT8级的配合中，孔与轴的公差等级应","options":["相同","孔比轴高一个公差等级","孔比轴低一个等级","任意"],"answer":2,"module":"单选题","explain":""},
+        {"title":"118. 在孔或轴的基本尺寸后面，既注出基本偏差代号和公差等级，又同时注出上、下偏差数值，这种标注形式用于","options":["成批生产","单件生产","小批量生产","生产批量不定"],"answer":3,"module":"单选题","explain":""},
+        {"title":"119. 表示的形位公差项目是","options":["平行度","垂直度","同轴度","倾斜度"],"answer":1,"module":"单选题","explain":""},
+        {"title":"120. 地形图是在什么阶段绘制的","options":["施工","初步设计","技术设计","勘测"],"answer":3,"module":"单选题","explain":""},
+        {"title":"121. 表达水利工程的布局、位置、类别等内容的图样是","options":["规划图","勘测图","建筑物结构图","施工图"],"answer":0,"module":"单选题","explain":""},
+        {"title":"122. 按设计要求用于指导水利工程与水工建筑物施工的图样，称为","options":["枢纽布置图","建筑物结构图","地基处理图","施工图"],"answer":3,"module":"单选题","explain":""},
+        {"title":"123. 泵站运行管理人员应按规定经","options":["高等院校毕业","上级部门同意","泵站领导审核","培训和考核"],"answer":3,"module":"单选题","explain":""},
+        {"title":"124. 泵站效率应根据泵型、泵站设计扬程或平均净扬程以及水源的含沙量情况确定，并符合","options":["《泵站设计规范》","《泵站更新改造技术规范》","《泵站技术管理规程》","《大型泵站设备设施运行规程》"],"answer":2,"module":"单选题","explain":""},
+        {"title":"125. 泵站机组用油大致可分为","options":["黄油","润滑油","润滑脂","机械油"],"answer":1,"module":"单选题","explain":""},
+        {"title":"126. 一台水泵机组是由具有一定质量的","options":["运动单元","单个零部件组合","2个零部件组合","多个零部件组合"],"answer":3,"module":"单选题","explain":""},
+        {"title":"127. 电接点双金属温度计应用于生产现场对温度需","options":["校核","调节","自动控制","显示"],"answer":2,"module":"单选题","explain":""},
+        {"title":"128. 液位计根据","options":["浮力原理和机械原理","电力原理","气压原理和磁性耦合","浮力原理和磁性耦合"],"answer":3,"module":"单选题","explain":""},
+        {"title":"129. 启动过程引起的振动对于","options":["平直管式流道","虹吸式流道","圆形流导","矩形流道"],"answer":1,"module":"单选题","explain":""},
+        {"title":"130. 转轮间隙不等会使主轴产生","options":["径向振摆","轴向摆动","轴向窜动","径向窜动"],"answer":0,"module":"单选题","explain":""},
+        {"title":"131. 投入运行前应检查主水泵填料函处","options":["填料压紧程度","填料选择","填料材质","颜色"],"answer":0,"module":"单选题","explain":""},
+        {"title":"132. 电阻的连接有","options":["两种","三种","四种","五种"],"answer":0,"module":"单选题","explain":""},
+        {"title":"133. 变压器是一种","options":["静止","输电","传电","运行"],"answer":0,"module":"单选题","explain":""},
+        {"title":"134. 泵站内进出水闸门的启动应采用","options":["正反转控制","点动控制","全压控制","自锁控制"],"answer":0,"module":"单选题","explain":""},
+        {"title":"135. 在使用兆欧表前，应先检查兆欧表的","options":["电压等级","电流等级","电阻等级","绝缘等级"],"answer":0,"module":"单选题","explain":""},
+        {"title":"136. 泵站的动力设备是指","options":["变压器","互感器","电动机","水泵"],"answer":2,"module":"单选题","explain":""},
+        {"title":"137. 在闭合电路中，当电源内阻增大时，电源两端的电压将","options":["升高","降低","不变","不确定"],"answer":1,"module":"单选题","explain":""},
+        {"title":"138. 在泵站中，L1，L2，L3三相交流电习惯用","options":["黄、绿、红","红、绿、黄","红、黄、绿","黄、红、绿"],"answer":0,"module":"单选题","explain":""},
+        {"title":"139. 电气设备在低于额定功率下的工作状态叫","options":["轻载","满载","过载","超载"],"answer":0,"module":"单选题","explain":""},
+        {"title":"140. 在全电压起动的控制电路中，热继电器只起","options":["短路","断路","过载","欠压"],"answer":2,"module":"单选题","explain":""},
+        {"title":"141. 单相正弦交流电的电压有效值为220V，其最大值为","options":["220","250","311","380"],"answer":2,"module":"单选题","explain":""},
+        {"title":"142. 为了保证启闭机的安全可靠工作，各类启闭机均应设置相应的","options":["监控装置","自动装置","扩力装置","安全保护装置"],"answer":3,"module":"单选题","explain":""},
+        {"title":"143. 清污机的驱动装置由","options":["监控装置","链条张紧机构","扩力装置","皮带张紧机构"],"answer":1,"module":"单选题","explain":""},
+        {"title":"144. 移动式启闭机的","options":["螺杆机构","行走机构","滑轮机构","减速机构"],"answer":1,"module":"单选题","explain":""},
+        {"title":"145. 螺杆启闭机常用的闭门","options":["套筒装置","限速装置","过载保护装置","安全保护装置"],"answer":2,"module":"单选题","explain":""},
+        {"title":"146. 目前，计算机监控系统软件多采用","options":["C/S","B/S","B2B","B2C"],"answer":0,"module":"单选题","explain":""},
+        {"title":"147. 模拟信号如语音信号要在数字线路上传输，必须将语音信号转换成数字信号，其转换过程需经历3 个过程：","options":["压缩","采样","A/D","调制"],"answer":1,"module":"单选题","explain":""},
+        {"title":"148. 目前，接入因特网时，不受时空限制，方便的接入方式是","options":["拨号接入","LAN接入","无线接入","ISDN"],"answer":2,"module":"单选题","explain":""},
+        {"title":"149. 多台计算机组网后，每一台计算机必须","options":["是相同型号的","是不同型号的","设置相同的IP地址","设置不同的IP地址"],"answer":3,"module":"单选题","explain":""},
+        {"title":"150. PLC的编程中，适用于开关量控制和逻辑互锁程序，以图形符号及图形符号在图中的相互关系表示控制关系的的编程语言是","options":["功能块图","梯形图","顺序功能图","指令表"],"answer":1,"module":"单选题","explain":""},
+        {"title":"151. 计算机监控系统的实时性反映在系统的响应时间上，画面的数据刷新时间在","options":["2s","1.5s","1s","0.5s"],"answer":3,"module":"单选题","explain":""},
+        {"title":"152. 泵站计算机网络以以太网为主，通信协议采用","options":["NETBEUI","IPX/SPX","TCP/IP","OSI/RM"],"answer":2,"module":"单选题","explain":""},
+        {"title":"153. 数字数据通信过程中可使用","options":["整体重发","自动重发请求","全面检查","奇偶校验法"],"answer":1,"module":"单选题","explain":""},
+        {"title":"154. 计算机监控系统安全性不包括","options":["操作安全","通信安全","人身安全","软硬件安全"],"answer":2,"module":"单选题","explain":""},
+        {"title":"155. 泵站计算机监控系统的现场设备可根据具体情况采用","options":["总线组网","环形组网","星型组网","树形组网"],"answer":0,"module":"单选题","explain":""},
+        {"title":"156. 培训计划必须满足","options":["组织及员工","组织及上级部门","社会及员工","群众和领导"],"answer":0,"module":"单选题","explain":""},
+        {"title":"157. 全面质量管理的特点：全员、全过程、","options":["全范围","全体","全面","全厂"],"answer":0,"module":"单选题","explain":""},
+        {"title":"158. 《中华人民共和国标准化法》规定，我国标准分为四级，即国家标准、","options":["县市标准","地市标准","省市标准","行业标准"],"answer":3,"module":"单选题","explain":""},
+        {"title":"159. 强制性国家标准的代号为“GB”，推荐性国家标准的代号为","options":["“T/GB”","“SL”","“GB/T”","“SL/T”"],"answer":2,"module":"单选题","explain":""},
+        {"title":"160. 档案信息管理应符合的要求包括：定期对技术文档","options":["借阅、归还","整理、归档","编码、排序","替换、销毁"],"answer":0,"module":"单选题","explain":""},
+        {"title":"161. 主水泵的更新改造涉及两个层面，一是选型，二是更新改造","options":["范围","评价","方案","成本"],"answer":2,"module":"单选题","explain":""},
+        {"title":"162. 水泵机组直接传动是用","options":["制动器","皮带传动","联轴器","离合器"],"answer":2,"module":"单选题","explain":""},
+        {"title":"163. 液压缸可实现","options":["旋转运动","往复直线运动","往复摆动运动","左右运动"],"answer":1,"module":"单选题","explain":""},
+        {"title":"164. 大中型泵站的机电设备，包括各类闸门，在选型和设计时都应考虑满足泵站","options":["效益","效率","性能参数","计算机监控"],"answer":3,"module":"单选题","explain":""},
+        {"title":"165. 当水泵采用叶片全调节方式而需要在电动机主轴内开孔时，应复核电动机主轴的","options":["硬度和强度","硬度和刚度","强度和刚度","弹性和韧性"],"answer":2,"module":"单选题","explain":""},
+        {"title":"166. 泵站应配置安装检修用的起重设备，大中型泵站应采用","options":["电动起重设备","手动起重设备","机械起重设备","手拉葫芦起重设备"],"answer":0,"module":"单选题","explain":""},
+
+],
+    
+    getAll() { return this.data; },
+    getLength() { return this.data.length; },
+    getByIndex(index) { return this.data[index]; },
+    getRandomIndex() { return Math.floor(Math.random() * this.data.length); },
+    getModules() { return [...new Set(this.data.map(q => q.module))]; },
+    getByModule(module) { return this.data.filter(q => q.module === module); },
+    shuffle() {
+        const arr = [...this.data];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    },
+    shuffleArray(arr) {
+        const result = [...arr];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
+};
+
+// ==================== UI 渲染模块 ====================
+const UI = {
+    switchPage(pageId, navItem) {
+        Utils.$$('.page').forEach(p => p.classList.remove('active'));
+        Utils.$$('.nav-item').forEach(n => n.classList.remove('active'));
+        Utils.$(pageId).classList.add('active');
+        if (navItem) navItem.classList.add('active');
+        
+        Store.setState({ currentPage: pageId });
+        
+        if (pageId === 'examPage') {
+            Utils.$('testTimer').parentElement.style.display = '';
+            if (Store.state.currentQuestionIndex === 0 && Store.state.examMode === '') {
+                Exam.startRandom();
+            } else {
+                this.renderExamQuestion();
+            }
+        } else if (pageId === 'testExamPage') {
+            Utils.$('testTimer').parentElement.style.display = '';
+        } else {
+            Utils.$('testTimer').parentElement.style.display = '';
+        }
+        
+        // 更新题库数量显示
+        if (pageId === 'homePage') {
+            this.updateQuestionCount();
+        }
+    },
+    
+    updateQuestionCount() {
+        const count = QuestionBank.data.length;
+        const dom = Utils.$('currentQuestionCount');
+        if (dom) dom.innerText = count;
+    },
+    
+    renderExamQuestion() {
+        const q = QuestionBank.getByIndex(Store.state.currentQuestionIndex);
+        if (!q) return;
+        
+        Utils.$('questionModule').innerText = q.module;
+        Utils.$('questionTitle').innerText = q.title;
+        Utils.$('answerAnalyze').classList.add('hidden');
+        Utils.$('nextBtn').disabled = true;
+        Utils.$('confirmMultiBtn').classList.add('hidden');
+        if (Exam.multiSelected) Exam.multiSelected = [];
+        Store.setState({ isAnswered: false });
+        
+        const box = Utils.$('answerOptions');
+        box.innerHTML = '';
+        
+        const isWritten = ['计算题', '简答题', '论述题'].includes(q.module);
+        
+        if (isWritten) {
+            // 显示文本输入框
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full p-4 bg-white/5 border border-white/20 rounded-xl text-[14px] min-h-[200px] resize-y';
+            textarea.placeholder = '请在此输入答案...';
+            box.appendChild(textarea);
+            
+            // 显示提交按钮
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn-gradient w-full py-3 mt-3 bg-gradient-to-r from-blue-500 to-cyan-500';
+            submitBtn.innerHTML = '<i class="fa fa-check mr-2"></i>提交答案';
+            submitBtn.onclick = () => Exam.handleWrittenAnswer(textarea.value, q);
+            box.appendChild(submitBtn);
+        } else {
+            // 显示选择题选项
+            q.options.forEach((item, index) => {
+                const dom = document.createElement('div');
+                dom.className = 'glass-card p-4.5 flex items-center gap-3 ripple';
+                dom.innerHTML = `
+                    <span class="w-6 h-6 flex items-center justify-center border border-white/20 rounded-full text-[13px]">${String.fromCharCode(65 + index)}</span>
+                    <span class="text-[15px]">${item}</span>
+                `;
+                dom.dataset.index = index;
+                dom.onclick = () => Exam.handleAnswer(index, dom);
+                box.appendChild(dom);
+            });
+        }
+        
+        Store.setState({ isAnswered: false });
+    },
+    
+    renderErrorList() {
+        const wrap = Utils.$('errorListContainer');
+        const errors = Store.state.errorQuestionList;
+        
+        if (errors.length === 0) {
+            wrap.innerHTML = `<div class="glass-card p-6 text-center text-gray-400"><i class="fa fa-inbox text-3xl mb-2"></i><p>暂无错题，继续加油！</p></div>`;
+            return;
+        }
+        
+        wrap.innerHTML = errors.map((item, idx) => `
+            <div class="glass-card p-5 cursor-pointer hover:bg-white/5 transition-colors" onclick="UI.goToErrorQuestion('${item.title}')">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <span class="inline-block px-2 py-1 bg-red-500/20 text-red-300 text-[12px] rounded-full mb-2">${item.module}</span>
+                        <p class="text-[15px] leading-relaxed">${item.title}</p>
+                    </div>
+                    <i class="fa fa-chevron-right text-gray-500 mt-2 ml-2"></i>
+                </div>
+            </div>
+        `).join('');
+    },
+    
+    goToErrorQuestion(title) {
+         const errors = Store.state.errorQuestionList;
+         const errorIndex = errors.findIndex(e => e.title === title);
+         if (errorIndex !== -1) {
+             const q = errors[errorIndex];
+             const actualIndex = QuestionBank.data.findIndex(item => item.title === q.title);
+             if (actualIndex !== -1) {
+                 Exam.answers[actualIndex] = -1;
+                 Store.setState({
+                     currentQuestionIndex: actualIndex,
+                     examMode: 'errorReview'
+                 });
+                 this.renderExamQuestion();
+                 this.switchPage('examPage');
+             }
+         }
+     },
+    
+    updateStats() {
+        const { totalRight, totalWrong, errorQuestionList, moduleErrorCount } = Store.state;
+        const total = totalRight + totalWrong;
+        const rate = total === 0 ? "0" : ((totalRight / total) * 100).toFixed(1);
+        
+        Utils.$('totalRate').innerText = rate + "%";
+        Utils.$('totalNum').innerText = total;
+        Utils.$('rightCount').innerText = totalRight;
+        Utils.$('wrongCount').innerText = totalWrong;
+        Utils.$('errorTotal').innerText = `共${errorQuestionList.length}题`;
+        
+        let weakText = "未检测";
+        let max = 0;
+        for (let k in moduleErrorCount) {
+            if (moduleErrorCount[k] > max) {
+                max = moduleErrorCount[k];
+                weakText = k;
+            }
+        }
+        Utils.$('weakModule').innerText = max === 0 ? "未检测" : weakText;
+    },
+    
+    // 百度文心一言API配置
+    BAIDU_CONFIG: {
+        apiKey: '61rMYpLOVRIyyctyHTHflIyq',
+        secretKey: 'ayj6sMDzZ96bO792mDyPfmXuDMslfId8',
+        token: null,
+        tokenExpireTime: 0
+    },
+    
+    async getBaiduAccessToken() {
+        const now = Date.now();
+        if (this.BAIDU_CONFIG.token && now < this.BAIDU_CONFIG.tokenExpireTime) {
+            return this.BAIDU_CONFIG.token;
+        }
+        
+        try {
+            // 使用本地代理服务器获取token
+            const response = await fetch('/api/baidu/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.access_token) {
+                    this.BAIDU_CONFIG.token = data.access_token;
+                    this.BAIDU_CONFIG.tokenExpireTime = now + (data.expires_in - 60) * 1000;
+                    return data.access_token;
+                } else {
+                    console.error('获取token失败:', data);
+                }
+            } else {
+                const errorText = await response.text();
+                console.error('获取token HTTP错误:', response.status, errorText);
+            }
+        } catch (e) {
+            console.error('获取百度API token失败:', e.message);
+        }
+        return null;
+    },
+    
+    async fetchSmartExplain(q) {
+        // 先尝试使用题库自带的解析
+        if (q.explain && q.explain.trim()) {
+            return q.explain;
+        }
+        
+        try {
+            const token = await this.getBaiduAccessToken();
+            if (!token) {
+                return 'API配置错误，请检查密钥';
+            }
+            
+            const prompt = `请详细解析以下题目：\n\n题目：${q.title}\n选项：${q.options.join('、')}\n正确答案：${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}\n\n请给出详细的解析说明。`;
+            
+            // 使用本地代理服务器调用百度API
+            const response = await fetch('/api/baidu/chat', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    messages: [
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.7
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('API响应:', data);
+                if (data.result) {
+                    return data.result;
+                } else if (data.choices && data.choices[0] && data.choices[0].message) {
+                    return data.choices[0].message.content;
+                } else if (data.error_code) {
+                    console.error('API错误:', data.error_code, data.error_msg);
+                    return `解析失败(${data.error_code}): ${data.error_msg}`;
+                }
+            } else {
+                const errorText = await response.text();
+                console.error('HTTP错误:', response.status, errorText);
+                return `HTTP错误: ${response.status}`;
+            }
+        } catch (e) {
+            console.error('智能解析获取失败:', e.message);
+            return `获取解析失败: ${e.message}`;
+        }
+        return '暂无解析';
+    },
+
+    async showAnswerResult(q, selectedIndex, dom) {
+        Utils.$('answerAnalyze').classList.remove('hidden');
+        Utils.$('nextBtn').disabled = false;
+        
+        // 显示用户选择的答案
+        const userAnswerText = `${String.fromCharCode(65 + selectedIndex)}. ${q.options[selectedIndex]}`;
+        Utils.$('userAnswerContent').innerText = userAnswerText;
+        
+        // 显示正确答案
+        Utils.$('correctAnswerContent').innerText = `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}`;
+        
+        if (selectedIndex === q.answer) {
+            dom.classList.add('border-green-500/50');
+            Toast.success('回答正确！');
+            if (q.explain) {
+                Utils.$('answerExplain').innerText = q.explain;
+            } else {
+                Utils.$('answerExplain').innerText = '暂无解析';
+            }
+        } else {
+            dom.classList.add('border-red-500/50');
+            const correctDom = Utils.$$('#answerOptions div')[q.answer];
+            if (correctDom) correctDom.classList.add('border-green-500/50', 'option-selected');
+            Toast.error('回答错误！');
+            
+            if (q.explain) {
+                Utils.$('answerExplain').innerText = q.explain;
+            } else {
+                Utils.$('answerExplain').innerText = '正在获取智能解析...';
+                const smartExplain = await this.fetchSmartExplain(q);
+                Utils.$('answerExplain').innerText = smartExplain;
+            }
+        }
+    },
+    
+    drawChart() {
+        const ctx = Utils.$('weakAnalyzeChart').getContext('2d');
+        if (window.weakChart) window.weakChart.destroy();
+        
+        window.weakChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: Object.keys(Store.state.moduleErrorCount),
+                datasets: [{
+                    label: "错题数量",
+                    data: Object.values(Store.state.moduleErrorCount),
+                    backgroundColor: 'rgba(167, 139, 250, 0.6)',
+                    borderRadius: 8,
+                    barThickness: 30
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.05)' }, 
+                        ticks: { color: '#9CA3AF' } 
+                    },
+                    x: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#9CA3AF' } 
+                    }
+                }
+            }
+        });
+    }
+};
+
+// ==================== 认证模块 ====================
+const Auth = {
+    register() {
+        const user = Utils.$('regUser').value.trim();
+        const pwd = Utils.$('regPwd').value.trim();
+        
+        if (!user) {
+            alert('请输入账号');
+            return;
+        }
+        
+        if (!pwd) {
+            alert('请输入密码');
+            return;
+        }
+        
+        if (DataStore.userExists(user)) {
+            alert('账号已存在');
+            return;
+        }
+        
+        DataStore.createUser(user, pwd);
+        alert('注册成功，请登录');
+        this.showLoginTab();
+    },
+    
+    login() {
+        const user = Utils.$('loginUser').value.trim();
+        const pwd = Utils.$('loginPwd').value.trim();
+        
+        if (!user) {
+            alert('请输入账号');
+            return;
+        }
+        
+        if (!pwd) {
+            alert('请输入密码');
+            return;
+        }
+        
+        const userData = DataStore.getUser(user);
+        if (!userData) {
+            alert('账号不存在');
+            return;
+        }
+        
+        if (userData.password !== pwd) {
+            alert('密码错误');
+            return;
+        }
+        
+        Store.setState({
+            currentUser: user,
+            totalRight: userData.right || 0,
+            totalWrong: userData.wrong || 0,
+            errorQuestionList: userData.errorList || [],
+            moduleErrorCount: userData.moduleErr || {}
+        });
+        
+        Utils.$('nowUserName').innerText = user;
+        const nav = document.querySelector('nav');
+        if (nav) nav.classList.remove('hide-nav');
+        UI.switchPage('homePage');
+        UI.updateStats();
+        UI.renderErrorList();
+        UI.drawChart();
+        
+        Toast.success(`欢迎回来，${user}`);
+    },
+    
+    logout() {
+        Store.setState({
+            currentUser: '',
+            totalRight: 0,
+            totalWrong: 0,
+            errorQuestionList: [],
+            currentQuestionIndex: 0,
+            isAnswered: false
+        });
+        
+        Utils.$('nav').classList.add('hide-nav');
+        UI.switchPage('loginPage');
+        Utils.$('loginUser').value = '';
+        Utils.$('loginPwd').value = '';
+    },
+    
+    forgotPassword() {
+        const user = Utils.$('forgotUser').value.trim();
+        if (!user) {
+            alert('请输入账号');
+            return;
+        }
+        
+        const userData = DataStore.getUser(user);
+        if (!userData) {
+            alert('账号不存在');
+            return;
+        }
+        
+        // 由于是本地存储，直接显示密码（实际项目中不应这样做）
+        alert(`您的密码是：${userData.password}`);
+        Utils.$('forgotPwdModal').classList.add('hidden');
+        Utils.$('forgotUser').value = '';
+    },
+    
+    showLoginTab() {
+        Utils.$('loginTab').classList.add('text-purple-400', 'border-b-2', 'border-purple-400');
+        Utils.$('regTab').classList.remove('text-purple-400', 'border-b-2', 'border-purple-400');
+        Utils.$('loginBox').classList.remove('hidden');
+        Utils.$('regBox').classList.add('hidden');
+    },
+    
+    showRegTab() {
+        Utils.$('regTab').classList.add('text-purple-400', 'border-b-2', 'border-purple-400');
+        Utils.$('loginTab').classList.remove('text-purple-400', 'border-b-2', 'border-purple-400');
+        Utils.$('regBox').classList.remove('hidden');
+        Utils.$('loginBox').classList.add('hidden');
+    }
+};
+
+// ==================== 刷题模块 ====================
+const Exam = {
+    choiceModules: ['单选题', '多选题', '判断题'],
+    answers: [],
+    
+    startRandom() {
+        const choiceQuestions = QuestionBank.data.filter(q => this.choiceModules.includes(q.module));
+        this.answers = new Array(QuestionBank.getLength()).fill(-1);
+        const randomIndex = Math.floor(Math.random() * choiceQuestions.length);
+        const actualIndex = QuestionBank.data.indexOf(choiceQuestions[randomIndex]);
+        Store.setState({
+            currentQuestionIndex: actualIndex,
+            examMode: 'random'
+        });
+        UI.renderExamQuestion();
+        UI.switchPage('examPage');
+    },
+    
+    async handleAnswer(selectedIndex, dom) {
+        if (Store.state.isAnswered) return;
+        
+        const q = QuestionBank.getByIndex(Store.state.currentQuestionIndex);
+        
+        if (q.module === '多选题') {
+            if (this.multiSelected === undefined) this.multiSelected = [];
+            const idx = this.multiSelected.indexOf(selectedIndex);
+            if (idx === -1) {
+                this.multiSelected.push(selectedIndex);
+                dom.classList.add('option-selected');
+            } else {
+                this.multiSelected.splice(idx, 1);
+                dom.classList.remove('option-selected');
+            }
+            Utils.$('confirmMultiBtn').classList.remove('hidden');
+            return;
+        }
+        
+        this.answers[Store.state.currentQuestionIndex] = selectedIndex;
+        Store.setState({ isAnswered: true });
+        
+        const { totalRight, totalWrong, errorQuestionList, moduleErrorCount } = Store.state;
+        
+        Utils.$$('#answerOptions div').forEach(d => d.onclick = null);
+        dom.classList.add('option-selected');
+        
+        let newRight = totalRight;
+        let newWrong = totalWrong;
+        let newErrors = [...errorQuestionList];
+        let newModuleErr = { ...moduleErrorCount };
+        
+        if (selectedIndex === q.answer) {
+            newRight++;
+        } else {
+            newWrong++;
+            newModuleErr[q.module] = (newModuleErr[q.module] || 0) + 1;
+            if (!newErrors.some(x => x.title === q.title)) {
+                newErrors.push(q);
+            }
+        }
+        
+        Store.setState({
+            totalRight: newRight,
+            totalWrong: newWrong,
+            errorQuestionList: newErrors,
+            moduleErrorCount: newModuleErr
+        });
+        
+        DataStore.updateUser(Store.state.currentUser, {
+            right: newRight,
+            wrong: newWrong,
+            errorList: newErrors,
+            moduleErr: newModuleErr
+        });
+        
+        await UI.showAnswerResult(q, selectedIndex, dom);
+        UI.updateStats();
+        UI.renderErrorList();
+        UI.drawChart();
+    },
+    
+    async confirmMultiAnswer() {
+        if (!this.multiSelected || this.multiSelected.length === 0) {
+            Toast.info('请选择至少一个答案');
+            return;
+        }
+        
+        const q = QuestionBank.getByIndex(Store.state.currentQuestionIndex);
+        this.answers[Store.state.currentQuestionIndex] = this.multiSelected;
+        Store.setState({ isAnswered: true });
+        
+        const { totalRight, totalWrong, errorQuestionList, moduleErrorCount } = Store.state;
+        
+        Utils.$$('#answerOptions div').forEach(d => d.onclick = null);
+        
+        let newRight = totalRight;
+        let newWrong = totalWrong;
+        let newErrors = [...errorQuestionList];
+        let newModuleErr = { ...moduleErrorCount };
+        
+        const userSet = new Set(this.multiSelected);
+        const answerSet = new Set(q.answer);
+        const isCorrect = userSet.size === answerSet.size && [...userSet].every(a => answerSet.has(a));
+        
+        if (isCorrect) {
+            newRight++;
+        } else {
+            newWrong++;
+            newModuleErr[q.module] = (newModuleErr[q.module] || 0) + 1;
+            if (!newErrors.some(x => x.title === q.title)) {
+                newErrors.push(q);
+            }
+        }
+        
+        Utils.$$('#answerOptions div').forEach((d, i) => {
+            if (q.answer.includes(i)) {
+                d.classList.add('border-green-500/50', 'option-selected');
+            } else if (this.multiSelected.includes(i)) {
+                d.classList.add('border-red-500/50');
+            }
+        });
+        
+        Utils.$('confirmMultiBtn').classList.add('hidden');
+        
+        Utils.$('answerAnalyze').classList.remove('hidden');
+        Utils.$('nextBtn').disabled = false;
+        
+        // 显示用户选择的答案
+        const userAnswerLetters = this.multiSelected.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('userAnswerContent').innerText = `${userAnswerLetters}. ${this.multiSelected.map(a => q.options[a]).join('、')}`;
+        
+        // 显示正确答案
+        const answerLetters = q.answer.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('correctAnswerContent').innerText = `${answerLetters}. ${q.answer.map(a => q.options[a]).join('、')}`;
+        
+        if (isCorrect) {
+            Toast.success('回答正确！');
+            Utils.$('answerExplain').innerText = q.explain || '暂无解析';
+        } else {
+            Toast.error('回答错误！');
+            if (q.explain) {
+                Utils.$('answerExplain').innerText = q.explain;
+            } else {
+                Utils.$('answerExplain').innerText = '正在获取智能解析...';
+                const smartExplain = await UI.fetchSmartExplain(q);
+                Utils.$('answerExplain').innerText = smartExplain;
+            }
+        }
+        
+        Store.setState({
+            totalRight: newRight,
+            totalWrong: newWrong,
+            errorQuestionList: newErrors,
+            moduleErrorCount: newModuleErr
+        });
+        
+        DataStore.updateUser(Store.state.currentUser, {
+            right: newRight,
+            wrong: newWrong,
+            errorList: newErrors,
+            moduleErr: newModuleErr
+        });
+        
+        UI.updateStats();
+        UI.renderErrorList();
+        UI.drawChart();
+        
+        this.multiSelected = [];
+    },
+    
+    next() {
+        const currentAnswer = this.answers[Store.state.currentQuestionIndex];
+        const q = QuestionBank.getByIndex(Store.state.currentQuestionIndex);
+        
+        let isUnanswered = false;
+        if (q.module === '多选题') {
+            isUnanswered = !currentAnswer || currentAnswer === -1 || (Array.isArray(currentAnswer) && currentAnswer.length === 0);
+        } else {
+            isUnanswered = currentAnswer === -1;
+        }
+        
+        if (isUnanswered) {
+            Toast.info('请先回答当前题目');
+            return;
+        }
+        
+        let nextIndex = Store.state.currentQuestionIndex + 1;
+        if (nextIndex >= QuestionBank.getLength()) {
+            nextIndex = 0;
+            Toast.info('已到达最后一题，从头开始');
+        }
+        Store.setState({ currentQuestionIndex: nextIndex });
+        UI.renderExamQuestion();
+    },
+    
+    handleWrittenAnswer(answer, q) {
+        if (Store.state.isAnswered) return;
+        
+        this.answers[Store.state.currentQuestionIndex] = answer;
+        Store.setState({ isAnswered: true });
+        
+        const { totalRight, totalWrong, errorQuestionList, moduleErrorCount } = Store.state;
+        
+        let newRight = totalRight;
+        let newWrong = totalWrong;
+        let newErrors = [...errorQuestionList];
+        let newModuleErr = { ...moduleErrorCount };
+        
+        const isCorrect = answer.trim() === q.answer.trim();
+        
+        if (isCorrect) {
+            newRight++;
+        } else {
+            newWrong++;
+            newModuleErr[q.module] = (newModuleErr[q.module] || 0) + 1;
+            if (!newErrors.some(x => x.title === q.title)) {
+                newErrors.push(q);
+            }
+        }
+        
+        Store.setState({
+            totalRight: newRight,
+            totalWrong: newWrong,
+            errorQuestionList: newErrors,
+            moduleErrorCount: newModuleErr
+        });
+        
+        DataStore.updateUser(Store.state.currentUser, {
+            right: newRight,
+            wrong: newWrong,
+            errorList: newErrors,
+            moduleErr: newModuleErr
+        });
+        
+        Utils.$('answerAnalyze').classList.remove('hidden');
+        Utils.$('correctAnswerContent').innerText = q.answer;
+        Utils.$('answerExplain').innerText = q.explain;
+        Utils.$('nextBtn').disabled = false;
+        
+        const textarea = Utils.$$('#answerOptions textarea')[0];
+        if (textarea) {
+            textarea.disabled = true;
+        }
+        
+        const submitBtn = Utils.$$('#answerOptions button')[0];
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-check-circle mr-2"></i>已提交';
+        }
+        
+        UI.updateStats();
+        UI.renderErrorList();
+        UI.drawChart();
+    },
+    
+    saveNote() {
+        const note = Utils.$('errorNote').value.trim();
+        if (note) {
+            Toast.success('复盘笔记已保存');
+        }
+        Utils.$('errorNote').value = '';
+    }
+};
+
+// ==================== 专项训练模块 ====================
+const SpecialTrain = {
+    currentModule: '',
+    questionList: [],
+    currentIndex: 0,
+    answers: [],
+    
+    start(module) {
+        this.currentModule = module;
+        this.questionList = QuestionBank.shuffleArray(QuestionBank.getByModule(module));
+        this.currentIndex = 0;
+        this.answers = new Array(this.questionList.length).fill(-1);
+        
+        Utils.$('testTimer').parentElement.style.display = 'none';
+        Utils.$('testTotalQ').innerText = this.questionList.length;
+        this.renderQuestion();
+        UI.switchPage('testExamPage');
+    },
+    
+    renderQuestion() {
+        const q = this.questionList[this.currentIndex];
+        const total = this.questionList.length;
+        const isJudge = q.module === '判断题';
+        const isWritten = ['计算题', '简答题', '论述题'].includes(q.module);
+        
+        Utils.$('testCurrentQ').innerText = this.currentIndex + 1;
+        Utils.$('testTotalQ').innerText = total;
+        Utils.$('testQuestionModule').innerText = q.module;
+        Utils.$('testQuestionTitle').innerText = q.title;
+        
+        const progress = ((this.currentIndex + 1) / total) * 100;
+        Utils.$('testProgressBar').style.width = `${progress}%`;
+        
+        const box = Utils.$('testAnswerOptions');
+        box.innerHTML = '';
+        
+        if (isWritten) {
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full p-4 bg-white/5 border border-white/20 rounded-xl text-[14px] min-h-[200px] resize-y';
+            textarea.placeholder = '请在此输入答案...';
+            if (this.answers[this.currentIndex] !== -1) {
+                textarea.value = this.answers[this.currentIndex];
+            }
+            box.appendChild(textarea);
+            
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn-gradient w-full py-3 mt-3 bg-gradient-to-r from-blue-500 to-cyan-500';
+            submitBtn.innerHTML = '<i class="fa fa-check mr-2"></i>提交答案';
+            submitBtn.onclick = () => this.submitWrittenAnswer(textarea.value);
+            box.appendChild(submitBtn);
+        } else {
+            q.options.forEach((item, index) => {
+                const dom = document.createElement('div');
+                const isSelected = this.answers[this.currentIndex] === index;
+                const label = isJudge ? item : String.fromCharCode(65 + index);
+                dom.className = `glass-card p-4.5 flex items-center gap-3 ripple ${isSelected ? 'option-selected' : ''}`;
+                dom.innerHTML = `
+                    <span class="w-6 h-6 flex items-center justify-center border border-white/20 rounded-full text-[13px] ${isSelected ? 'bg-purple-500 border-purple-500' : ''}">${label}</span>
+                    <span class="text-[15px]">${item}</span>
+                `;
+                dom.dataset.index = index;
+                dom.onclick = () => this.selectAnswer(index, dom);
+                box.appendChild(dom);
+            });
+        }
+        
+        Utils.$('testPrevBtn').disabled = this.currentIndex === 0;
+        
+        if (this.currentIndex === total - 1) {
+            Utils.$('testNextBtn').classList.add('hidden');
+            Utils.$('testSubmitBtn').classList.remove('hidden');
+            Utils.$('testSubmitBtn').innerHTML = '<i class="fa fa-flag-checkered mr-2"></i>完成训练';
+            Utils.$('testSubmitBtn').className = 'btn-gradient w-full py-4 mt-3 bg-gradient-to-r from-green-500 to-teal-500';
+            Utils.$('testSubmitBtn').onclick = () => this.finish();
+        } else {
+            Utils.$('testNextBtn').classList.remove('hidden');
+            Utils.$('testSubmitBtn').classList.add('hidden');
+        }
+        
+        Utils.$('testAnswerAnalyze').classList.add('hidden');
+    },
+    
+    selectAnswer(index, dom) {
+        const q = this.questionList[this.currentIndex];
+        const isMulti = q.module === '多选题';
+        
+        if (this.answers[this.currentIndex] !== -1 && !isMulti) {
+            return;
+        }
+        
+        if (isMulti) {
+            if (this.answers[this.currentIndex] === -1) {
+                this.answers[this.currentIndex] = [];
+            }
+            const arr = this.answers[this.currentIndex];
+            const idx = arr.indexOf(index);
+            if (idx === -1) {
+                arr.push(index);
+            } else {
+                arr.splice(idx, 1);
+            }
+            
+            Utils.$$('#testAnswerOptions div').forEach((d, i) => {
+                const span = d.querySelector('span:first-child');
+                if (arr.includes(i)) {
+                    d.classList.add('option-selected');
+                    span.classList.add('bg-purple-500', 'border-purple-500');
+                } else {
+                    d.classList.remove('option-selected');
+                    span.classList.remove('bg-purple-500', 'border-purple-500');
+                }
+            });
+            
+            Utils.$('testConfirmBtn').classList.remove('hidden');
+            Utils.$('testNextBtn').classList.add('hidden');
+            Utils.$('testAnswerAnalyze').classList.add('hidden');
+        } else {
+            this.answers[this.currentIndex] = index;
+            
+            Utils.$$('#testAnswerOptions div').forEach((d, i) => {
+                const span = d.querySelector('span:first-child');
+                if (i === index) {
+                    d.classList.add('option-selected');
+                    span.classList.add('bg-purple-500', 'border-purple-500');
+                } else {
+                    d.style.opacity = '0.5';
+                }
+                d.onclick = null;
+            });
+            
+            Utils.$('testAnswerAnalyze').classList.remove('hidden');
+            const isJudge = q.module === '判断题';
+            
+            // 显示用户选择的答案
+            const userAnswerText = isJudge ? q.options[index] : `${String.fromCharCode(65 + index)}. ${q.options[index]}`;
+            Utils.$('testUserAnswerContent').innerText = userAnswerText;
+            
+            // 显示正确答案
+            const answerText = isJudge ? q.options[q.answer] : `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}`;
+            Utils.$('testCorrectAnswerContent').innerText = answerText;
+            Utils.$('testAnswerExplain').innerText = q.explain;
+            
+            setTimeout(() => {
+                if (this.currentIndex < this.questionList.length - 1) {
+                    this.next();
+                }
+            }, 1500);
+        }
+    },
+    
+    confirmMultiAnswer() {
+        const q = this.questionList[this.currentIndex];
+        const userAnswer = this.answers[this.currentIndex];
+        
+        Utils.$('testConfirmBtn').classList.add('hidden');
+        
+        Utils.$$('#testAnswerOptions div').forEach((d) => {
+            d.style.opacity = '0.5';
+            d.onclick = null;
+        });
+        
+        const userSet = new Set(userAnswer);
+        const answerSet = new Set(q.answer);
+        const isCorrect = userSet.size === answerSet.size && [...userSet].every(a => answerSet.has(a));
+        
+        if (isCorrect) {
+            Toast.success('回答正确！');
+        } else {
+            Toast.error('回答错误！');
+        }
+        
+        Utils.$('testAnswerAnalyze').classList.remove('hidden');
+        
+        // 显示用户选择的答案
+        const userAnswerLetters = userAnswer.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('testUserAnswerContent').innerText = `${userAnswerLetters}. ${userAnswer.map(a => q.options[a]).join('、')}`;
+        
+        // 显示正确答案
+        const answerLetters = q.answer.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('testCorrectAnswerContent').innerText = `${answerLetters}. ${q.answer.map(a => q.options[a]).join('、')}`;
+        Utils.$('testAnswerExplain').innerText = q.explain || '暂无解析';
+        
+        setTimeout(() => {
+            if (this.currentIndex < this.questionList.length - 1) {
+                this.next();
+            }
+        }, 1500);
+    },
+    
+    submitWrittenAnswer(answer) {
+        const q = this.questionList[this.currentIndex];
+        this.answers[this.currentIndex] = answer;
+        
+        Utils.$('testAnswerAnalyze').classList.remove('hidden');
+        Utils.$('testCorrectAnswerContent').innerText = q.answer;
+        Utils.$('testAnswerExplain').innerText = q.explain;
+        
+        const textarea = Utils.$$('#testAnswerOptions textarea')[0];
+        if (textarea) {
+            textarea.disabled = true;
+        }
+        
+        const submitBtn = Utils.$$('#testAnswerOptions button')[0];
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-check-circle mr-2"></i>已提交';
+        }
+        
+        setTimeout(() => {
+            if (this.currentIndex < this.questionList.length - 1) {
+                this.next();
+            }
+        }, 1500);
+    },
+    
+    next() {
+        const currentAnswer = this.answers[this.currentIndex];
+        if (currentAnswer === -1) {
+            Toast.info('请先回答当前题目');
+            return;
+        }
+        if (this.currentIndex < this.questionList.length - 1) {
+            this.currentIndex++;
+            this.renderQuestion();
+        }
+    },
+    
+    prev() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.renderQuestion();
+        }
+    },
+    
+    finish() {
+        const unanswered = this.answers.filter(a => a === -1).length;
+        if (unanswered > 0) {
+            Toast.info('请完成所有题目后再结束训练');
+            return;
+        }
+        let right = 0;
+        let wrong = 0;
+        
+        this.questionList.forEach((q, index) => {
+            const userAnswer = this.answers[index];
+            let isCorrect = false;
+            
+            if (q.module === '多选题') {
+                if (Array.isArray(userAnswer) && Array.isArray(q.answer)) {
+                    const userSet = new Set(userAnswer);
+                    const answerSet = new Set(q.answer);
+                    isCorrect = userSet.size === answerSet.size && [...userSet].every(a => answerSet.has(a));
+                }
+            } else if (['计算题', '简答题', '论述题'].includes(q.module)) {
+                isCorrect = userAnswer !== -1 && userAnswer.trim() === q.answer.trim();
+            } else {
+                isCorrect = userAnswer === q.answer;
+            }
+            
+            if (isCorrect) {
+                right++;
+            } else {
+                wrong++;
+            }
+        });
+        
+        const total = right + wrong;
+        const rate = total === 0 ? 0 : ((right / total) * 100).toFixed(1);
+        
+        alert(`${this.currentModule}练习完成！\n正确率：${rate}% (${right}/${total})`);
+        
+        Utils.$('testTimer').parentElement.style.display = '';
+        this.currentIndex = 0;
+        this.answers = new Array(this.questionList.length).fill(-1);
+        this.renderQuestion();
+    }
+};
+
+// ==================== 模拟考试模块 ====================
+const TestExam = {
+    TOTAL_TIME: 90 * 60,
+    timerId: null,
+    timeLeft: 0,
+    testPaper: [],
+    currentIndex: 0,
+    answers: [],
+    moduleStats: {},
+    EXAM_CONFIG: {
+        '单选题': { count: 60, score: 0.5 },
+        '多选题': { count: 15, score: 2 },
+        '判断题': { count: 20, score: 0.5 },
+        '计算题': { count: 2, score: 5 },
+        '简答题': { count: 2, score: 5 },
+        '论述题': { count: 2, score: 7.5 }
+    },
+    totalScore: 0,
+    
+    start() {
+        const shuffledPaper = [];
+        const modules = Object.keys(this.EXAM_CONFIG);
+        
+        modules.forEach(module => {
+            const moduleQuestions = QuestionBank.getByModule(module);
+            if (moduleQuestions && moduleQuestions.length > 0) {
+                const shuffled = QuestionBank.shuffleArray(moduleQuestions);
+                const count = Math.min(this.EXAM_CONFIG[module].count, shuffled.length);
+                for (let i = 0; i < count; i++) {
+                    shuffledPaper.push(shuffled[i]);
+                }
+            }
+        });
+        
+        this.testPaper = shuffledPaper;
+        this.currentIndex = 0;
+        this.answers = new Array(this.testPaper.length).fill(-1);
+        this.timeLeft = this.TOTAL_TIME;
+        
+        this.moduleStats = {};
+        modules.forEach(m => {
+            this.moduleStats[m] = { total: 0, right: 0, score: 0 };
+        });
+        
+        this.totalScore = 0;
+        this.testPaper.forEach(q => {
+            if (this.moduleStats[q.module]) {
+                this.moduleStats[q.module].total++;
+                this.totalScore += this.EXAM_CONFIG[q.module].score;
+            }
+        });
+        
+        Utils.$('testTotalQ').innerText = this.testPaper.length;
+        this.renderQuestion();
+        this.startTimer();
+        UI.switchPage('testExamPage');
+    },
+    
+    startTimer() {
+        this.updateTimerDisplay();
+        this.timerId = setInterval(() => {
+            this.timeLeft--;
+            this.updateTimerDisplay();
+            
+            if (this.timeLeft <= 0) {
+                this.autoSubmit();
+            }
+            
+            if (this.timeLeft === 300) {
+                Toast.warning('还剩5分钟');
+            }
+        }, 1000);
+    },
+    
+    updateTimerDisplay() {
+        const mins = Math.floor(this.timeLeft / 60);
+        const secs = this.timeLeft % 60;
+        Utils.$('testTimer').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    },
+    
+    stopTimer() {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+        }
+    },
+    
+    renderQuestion() {
+        const q = this.testPaper[this.currentIndex];
+        const total = this.testPaper.length;
+        const isJudge = q.module === '判断题';
+        const isWritten = ['计算题', '简答题', '论述题'].includes(q.module);
+        
+        Utils.$('testCurrentQ').innerText = this.currentIndex + 1;
+        Utils.$('testTotalQ').innerText = total;
+        Utils.$('testQuestionModule').innerText = q.module;
+        Utils.$('testQuestionTitle').innerText = q.title;
+        
+        const progress = ((this.currentIndex + 1) / total) * 100;
+        Utils.$('testProgressBar').style.width = `${progress}%`;
+        
+        const box = Utils.$('testAnswerOptions');
+        box.innerHTML = '';
+        
+        if (isWritten) {
+            // 显示文本输入框
+            const textarea = document.createElement('textarea');
+            textarea.className = 'w-full p-4 bg-white/5 border border-white/20 rounded-xl text-[14px] min-h-[200px] resize-y';
+            textarea.placeholder = '请在此输入答案...';
+            if (this.answers[this.currentIndex] !== -1) {
+                textarea.value = this.answers[this.currentIndex];
+            }
+            box.appendChild(textarea);
+            
+            // 显示提交按钮
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'btn-gradient w-full py-3 mt-3 bg-gradient-to-r from-blue-500 to-cyan-500';
+            submitBtn.innerHTML = '<i class="fa fa-check mr-2"></i>提交答案';
+            submitBtn.onclick = () => this.submitWrittenAnswer(textarea.value);
+            box.appendChild(submitBtn);
+        } else {
+            // 显示选择题选项
+            q.options.forEach((item, index) => {
+                const dom = document.createElement('div');
+                const isSelected = this.answers[this.currentIndex] === index;
+                const label = isJudge ? item : String.fromCharCode(65 + index);
+                dom.className = `glass-card p-4.5 flex items-center gap-3 ripple ${isSelected ? 'option-selected' : ''}`;
+                dom.innerHTML = `
+                    <span class="w-6 h-6 flex items-center justify-center border border-white/20 rounded-full text-[13px] ${isSelected ? 'bg-purple-500 border-purple-500' : ''}">${label}</span>
+                    <span class="text-[15px]">${item}</span>
+                `;
+                dom.dataset.index = index;
+                dom.onclick = () => this.selectAnswer(index, dom);
+                box.appendChild(dom);
+            });
+        }
+        
+        Utils.$('testPrevBtn').disabled = this.currentIndex === 0;
+        
+        if (this.currentIndex === total - 1) {
+            Utils.$('testNextBtn').classList.add('hidden');
+            Utils.$('testSubmitBtn').classList.remove('hidden');
+        } else {
+            Utils.$('testNextBtn').classList.remove('hidden');
+            Utils.$('testSubmitBtn').classList.add('hidden');
+        }
+        
+        Utils.$('testAnswerAnalyze').classList.add('hidden');
+    },
+    
+    selectAnswer(index, dom) {
+        const q = this.testPaper[this.currentIndex];
+        const isMulti = q.module === '多选题';
+        
+        if (this.answers[this.currentIndex] !== -1 && !isMulti) {
+            return;
+        }
+        
+        if (isMulti) {
+            if (this.answers[this.currentIndex] === -1) {
+                this.answers[this.currentIndex] = [];
+            }
+            const arr = this.answers[this.currentIndex];
+            const idx = arr.indexOf(index);
+            if (idx === -1) {
+                arr.push(index);
+            } else {
+                arr.splice(idx, 1);
+            }
+            
+            Utils.$$('#testAnswerOptions div').forEach((d, i) => {
+                const span = d.querySelector('span:first-child');
+                if (arr.includes(i)) {
+                    d.classList.add('option-selected');
+                    span.classList.add('bg-purple-500', 'border-purple-500');
+                } else {
+                    d.classList.remove('option-selected');
+                    span.classList.remove('bg-purple-500', 'border-purple-500');
+                }
+            });
+            
+            Utils.$('testConfirmBtn').classList.remove('hidden');
+            Utils.$('testNextBtn').classList.add('hidden');
+            Utils.$('testAnswerAnalyze').classList.add('hidden');
+        } else {
+            this.answers[this.currentIndex] = index;
+            
+            Utils.$$('#testAnswerOptions div').forEach((d, i) => {
+                const span = d.querySelector('span:first-child');
+                if (i === index) {
+                    d.classList.add('option-selected');
+                    span.classList.add('bg-purple-500', 'border-purple-500');
+                } else {
+                    d.style.opacity = '0.5';
+                }
+                d.onclick = null;
+            });
+            
+            if (this.moduleStats[q.module]) {
+                this.moduleStats[q.module].total++;
+                const isCorrect = index === q.answer;
+                if (isCorrect) {
+                    this.moduleStats[q.module].right++;
+                }
+            }
+            
+            Utils.$('testAnswerAnalyze').classList.remove('hidden');
+            const isJudge = q.module === '判断题';
+            
+            // 显示用户选择的答案
+            const userAnswerText = isJudge ? q.options[index] : `${String.fromCharCode(65 + index)}. ${q.options[index]}`;
+            Utils.$('testUserAnswerContent').innerText = userAnswerText;
+            
+            // 显示正确答案
+            const answerText = isJudge ? q.options[q.answer] : `${String.fromCharCode(65 + q.answer)}. ${q.options[q.answer]}`;
+            Utils.$('testCorrectAnswerContent').innerText = answerText;
+            Utils.$('testAnswerExplain').innerText = q.explain;
+            
+            setTimeout(() => {
+                if (this.currentIndex < this.testPaper.length - 1) {
+                    this.next();
+                }
+            }, 1500);
+        }
+    },
+    
+    confirmMultiAnswer() {
+        const q = this.testPaper[this.currentIndex];
+        const userAnswer = this.answers[this.currentIndex];
+        
+        if (this.moduleStats[q.module]) {
+            this.moduleStats[q.module].total++;
+            
+            let isCorrect = false;
+            if (Array.isArray(userAnswer) && Array.isArray(q.answer)) {
+                const userSet = new Set(userAnswer);
+                const answerSet = new Set(q.answer);
+                isCorrect = userSet.size === answerSet.size && [...userSet].every(a => answerSet.has(a));
+            }
+            
+            if (isCorrect) {
+                this.moduleStats[q.module].right++;
+            }
+        }
+        
+        Utils.$('testConfirmBtn').classList.add('hidden');
+        
+        Utils.$$('#testAnswerOptions div').forEach((d) => {
+            d.style.opacity = '0.5';
+            d.onclick = null;
+        });
+        
+        Utils.$('testAnswerAnalyze').classList.remove('hidden');
+        
+        // 显示用户选择的答案
+        const userAnswerLetters = userAnswer.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('testUserAnswerContent').innerText = `${userAnswerLetters}. ${userAnswer.map(a => q.options[a]).join('、')}`;
+        
+        // 显示正确答案
+        const answerLetters = q.answer.map(a => String.fromCharCode(65 + a)).join('、');
+        Utils.$('testCorrectAnswerContent').innerText = `${answerLetters}. ${q.answer.map(a => q.options[a]).join('、')}`;
+        Utils.$('testAnswerExplain').innerText = q.explain;
+        
+        setTimeout(() => {
+            if (this.currentIndex < this.testPaper.length - 1) {
+                this.next();
+            }
+        }, 1500);
+    },
+    
+    submitWrittenAnswer(answer) {
+        const q = this.testPaper[this.currentIndex];
+        this.answers[this.currentIndex] = answer;
+        
+        if (this.moduleStats[q.module]) {
+            this.moduleStats[q.module].total++;
+        }
+        
+        Utils.$('testAnswerAnalyze').classList.remove('hidden');
+        Utils.$('testCorrectAnswerContent').innerText = q.answer;
+        Utils.$('testAnswerExplain').innerText = q.explain;
+        
+        const textarea = Utils.$$('#testAnswerOptions textarea')[0];
+        if (textarea) {
+            textarea.disabled = true;
+        }
+        
+        const submitBtn = Utils.$$('#testAnswerOptions button')[0];
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa fa-check-circle mr-2"></i>已提交';
+        }
+        
+        setTimeout(() => {
+            if (this.currentIndex < this.testPaper.length - 1) {
+                this.next();
+            }
+        }, 1500);
+    },
+    
+    next() {
+        const currentAnswer = this.answers[this.currentIndex];
+        if (currentAnswer === -1) {
+            Toast.info('请先回答当前题目');
+            return;
+        }
+        if (this.currentIndex < this.testPaper.length - 1) {
+            this.currentIndex++;
+            this.renderQuestion();
+        }
+    },
+    
+    prev() {
+        if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.renderQuestion();
+        }
+    },
+    
+    confirmExit() {
+        if (confirm('确定要退出考试吗？退出后本次考试成绩将不会保存。')) {
+            this.stopTimer();
+            UI.switchPage('homePage');
+        }
+    },
+    
+    submit() {
+        const unanswered = this.answers.filter(a => a === -1).length;
+        if (unanswered > 0) {
+            if (!confirm(`还有${unanswered}题未作答，确定要交卷吗？`)) {
+                return;
+            }
+        }
+        this.finishTest();
+    },
+    
+    autoSubmit() {
+        this.stopTimer();
+        this.finishTest();
+    },
+    
+    finishTest() {
+        this.stopTimer();
+        
+        let right = 0;
+        let wrong = 0;
+        const errorList = [];
+        
+        this.testPaper.forEach((q, index) => {
+            const userAnswer = this.answers[index];
+            let isCorrect = false;
+            
+            if (q.module === '多选题') {
+                if (Array.isArray(userAnswer) && Array.isArray(q.answer)) {
+                    const userSet = new Set(userAnswer);
+                    const answerSet = new Set(q.answer);
+                    isCorrect = userSet.size === answerSet.size && [...userSet].every(a => answerSet.has(a));
+                }
+            } else if (['计算题', '简答题', '论述题'].includes(q.module)) {
+                // 主观题验证逻辑 - 简单文本比较
+                isCorrect = userAnswer !== -1 && userAnswer.trim() === q.answer.trim();
+            } else {
+                isCorrect = userAnswer === q.answer;
+            }
+            
+            if (isCorrect) {
+                right++;
+            } else {
+                wrong++;
+                errorList.push({
+                    ...q,
+                    userAnswer: userAnswer
+                });
+            }
+        });
+        
+        const total = right + wrong;
+        const rate = total === 0 ? 0 : ((right / total) * 100).toFixed(1);
+        const score = (this.totalScore * (right / total)).toFixed(1);
+        
+        Utils.$('testResultRight').innerText = right;
+        Utils.$('testResultWrong').innerText = wrong;
+        Utils.$('testResultRate').innerText = rate + '%';
+        
+        const scoreEl = Utils.$('testResultScore');
+        if (scoreEl) scoreEl.innerText = score + '分';
+        
+        const moduleLabels = Object.keys(this.moduleStats);
+        const moduleRightRates = moduleLabels.map(m => {
+            const s = this.moduleStats[m];
+            return s.total === 0 ? 0 : ((s.right / s.total) * 100).toFixed(1);
+        });
+        
+        setTimeout(() => {
+            const ctx = Utils.$('testModuleChart').getContext('2d');
+            if (window.testModuleChart) window.testModuleChart.destroy();
+            
+            window.testModuleChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: moduleLabels,
+                    datasets: [{
+                        label: '正确率',
+                        data: moduleRightRates,
+                        backgroundColor: moduleRightRates.map(r => 
+                            parseFloat(r) >= 60 ? 'rgba(34, 197, 94, 0.6)' : 'rgba(239, 68, 68, 0.6)'
+                        ),
+                        borderRadius: 8,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' }, 
+                            ticks: { color: '#9CA3AF' } 
+                        },
+                        x: { 
+                            grid: { display: false }, 
+                            ticks: { color: '#9CA3AF' } 
+                        }
+                    }
+                }
+            });
+        }, 100);
+        
+        const getAnswerText = (q, answer) => {
+            if (answer === -1) return '未作答';
+            if (['计算题', '简答题', '论述题'].includes(q.module)) {
+                return answer.length > 30 ? answer.substring(0, 30) + '...' : answer;
+            }
+            if (q.module === '判断题') return q.options[answer];
+            if (q.module === '多选题') {
+                if (typeof answer === 'number') return String.fromCharCode(65 + answer);
+                return answer.map(a => String.fromCharCode(65 + a)).join('、');
+            }
+            return String.fromCharCode(65 + answer);
+        };
+        
+        const errorContainer = Utils.$('testErrorListContainer');
+        if (errorList.length === 0) {
+            errorContainer.innerHTML = `<div class="glass-card p-5 text-center text-green-400"><i class="fa fa-trophy text-2xl mb-2"></i><p>太棒了！全部答对！</p></div>`;
+        } else {
+            errorContainer.innerHTML = `
+                <p class="text-[14px] text-gray-400 mb-3">本次考试错题（共${errorList.length}题）：</p>
+                ${errorList.map(item => `
+                    <div class="glass-card p-4 mb-3">
+                        <span class="inline-block px-2 py-1 bg-red-500/20 text-red-300 text-[12px] rounded-full mb-2">${item.module}</span>
+                        <p class="text-[14px] leading-relaxed mb-2">${item.title}</p>
+                        <p class="text-[13px] text-gray-400">你的答案: ${getAnswerText(item, item.userAnswer)}</p>
+                        <p class="text-[13px] text-green-400">正确答案: ${getAnswerText(item, item.answer)}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        UI.switchPage('testResultPage');
+    },
+    
+    viewErrors() {
+        Utils.$('errorBookPage').classList.add('active');
+        Utils.$$('.nav-item').forEach(n => n.classList.remove('active'));
+    },
+    
+    backHome() {
+        UI.switchPage('homePage');
+        UI.updateStats();
+        UI.drawChart();
+    }
+};
+
+// ==================== 题库导入模块 ====================
+const Import = {
+    tempQuestions: [],
+    
+    handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const content = e.target.result;
+            this.parseContent(content);
+        };
+        reader.onerror = () => {
+            Toast.error('文件读取失败');
+        };
+        reader.readAsText(file, 'UTF-8');
+    },
+    
+    parseContent(content) {
+        Utils.$('importProgress').classList.remove('hidden');
+        Utils.$('importResult').classList.add('hidden');
+        
+        // 进度动画
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            Utils.$('progressBar').style.width = `${Math.min(progress, 90)}%`;
+            Utils.$('progressText').innerText = `${Math.min(progress, 90)}%`;
+            
+            if (progress >= 90) {
+                clearInterval(interval);
+            }
+        }, 100);
+        
+        // 解析题目
+        setTimeout(() => {
+            const questions = this.parseQuestions(content);
+            clearInterval(interval);
+            
+            Utils.$('progressBar').style.width = '100%';
+            Utils.$('progressText').innerText = '100%';
+            Utils.$('importStatus').innerText = `解析完成，共识别 ${questions.length} 道题目`;
+            
+            this.tempQuestions = questions;
+            this.showResult(questions);
+        }, 1500);
+    },
+    
+    parseQuestions(content) {
+        const questions = [];
+        const lines = content.split(/\n+/);
+        
+        let currentQuestion = null;
+        let currentOptions = [];
+        let inOptions = false;
+        
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+            if (!line) continue;
+            
+            // 检测题目行（以数字开头，包含题目内容）
+            const questionMatch = line.match(/^(\d+)[.、\s]+(.+)$/);
+            if (questionMatch) {
+                // 保存上一题
+                if (currentQuestion) {
+                    currentQuestion.options = currentOptions;
+                    questions.push(currentQuestion);
+                }
+                
+                // 创建新题目
+                currentQuestion = {
+                    title: questionMatch[2].trim(),
+                    options: [],
+                    answer: 0,
+                    explain: '',
+                    module: '单选题'
+                };
+                currentOptions = [];
+                inOptions = true;
+                continue;
+            }
+            
+            // 检测选项行
+            if (inOptions && currentQuestion) {
+                const optionMatch = line.match(/^([A-D])[.、\s]+(.+)$/);
+                if (optionMatch) {
+                    currentOptions.push(optionMatch[2].trim());
+                    continue;
+                }
+                
+                // 检测答案行
+                const answerMatch = line.match(/^(答案 | 参考答案 | 正确选项)[:：\s]*([A-D1-4])$/i);
+                if (answerMatch) {
+                    const answerChar = answerMatch[2].toUpperCase();
+                    if (['A', 'B', 'C', 'D'].includes(answerChar)) {
+                        currentQuestion.answer = answerChar.charCodeAt(0) - 65;
+                    } else if (['1', '2', '3', '4'].includes(answerChar)) {
+                        currentQuestion.answer = parseInt(answerChar) - 1;
+                    }
+                    continue;
+                }
+                
+                // 检测解析行
+                const explainMatch = line.match(/^(解析 | 答案解析 | 说明)[:：\s]*(.+)$/);
+                if (explainMatch) {
+                    currentQuestion.explain = explainMatch[2].trim();
+                    continue;
+                }
+                
+                // 如果没有匹配到任何格式，且选项为空，可能是题目 continuation
+                if (currentOptions.length === 0 && line.length > 10) {
+                    currentQuestion.title += ' ' + line;
+                }
+            }
+        }
+        
+        // 保存最后一题
+        if (currentQuestion && currentOptions.length > 0) {
+            currentQuestion.options = currentOptions;
+            questions.push(currentQuestion);
+        }
+        
+        return questions;
+    },
+    
+    showResult(questions) {
+        const success = questions.filter(q => q.options.length >= 2).length;
+        const failed = questions.length - success;
+        
+        Utils.$('importSuccess').innerText = success;
+        Utils.$('importFailed').innerText = failed;
+        Utils.$('importTotal').innerText = questions.length;
+        
+        Utils.$('importResult').classList.remove('hidden');
+        Toast.success(`成功解析 ${success} 道题目`);
+    },
+    
+    confirmImport() {
+        if (this.tempQuestions.length === 0) {
+            Toast.error('没有可导入的题目');
+            return;
+        }
+        
+        // 添加到题库
+        const validQuestions = this.tempQuestions.filter(q => q.options.length >= 2);
+        QuestionBank.data.push(...validQuestions);
+        
+        Toast.success(`成功导入 ${validQuestions.length} 道题目`);
+        
+        // 保存到 localStorage
+        localStorage.setItem('questionBank', JSON.stringify(QuestionBank.data));
+        
+        // 更新首页显示
+        UI.updateQuestionCount();
+        
+        // 返回首页
+        setTimeout(() => {
+            UI.switchPage('homePage');
+            // 重置导入页面
+            Utils.$('fileInput').value = '';
+            Utils.$('importProgress').classList.add('hidden');
+            Utils.$('importResult').classList.add('hidden');
+            this.tempQuestions = [];
+        }, 1000);
+    }
+};
+
+// ==================== 初始化 ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const nav = document.querySelector('nav');
+    if (nav) nav.classList.add('hide-nav');
+    
+    // 加载已保存的题库
+    const savedBank = localStorage.getItem('questionBank');
+    if (savedBank) {
+        try {
+            const parsed = JSON.parse(savedBank);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                QuestionBank.data = parsed;
+            }
+        } catch (e) {
+            console.error('加载题库失败:', e);
+        }
+    }
+    
+    Utils.$('loginTab').onclick = () => Auth.showLoginTab();
+    Utils.$('regTab').onclick = () => Auth.showRegTab();
+    
+    Utils.$('loginUser').onkeyup = (e) => { if(e.key === 'Enter') Auth.login(); };
+    
+    // 忘记密码功能
+    window.showForgotPwd = () => {
+        Utils.$('forgotPwdModal').classList.remove('hidden');
+    };
+    Utils.$('loginPwd').onkeyup = (e) => { if(e.key === 'Enter') Auth.login(); };
+    Utils.$('regUser').onkeyup = (e) => { if(e.key === 'Enter') Auth.register(); };
+    Utils.$('regPwd').onkeyup = (e) => { if(e.key === 'Enter') Auth.register(); };
+    
+    UI.drawChart();
+    UI.updateQuestionCount();
+});
+</script>
+
+<!-- 版权信息 -->
+<footer class="py-6 text-center text-[12px] text-gray-400">
+    <p>© 2026 拾野纪科技. 保留所有权利.</p>
+</footer>
+</body></html>
